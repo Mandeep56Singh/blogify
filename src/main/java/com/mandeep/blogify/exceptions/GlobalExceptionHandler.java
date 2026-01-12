@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -79,6 +80,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
 
+    @ExceptionHandler({
+            MethodArgumentTypeMismatchException.class,
+            org.hibernate.type.descriptor.java.CoercionException.class,
+            IllegalArgumentException.class
+    })
+    public ResponseEntity<ProblemDetail> handleTypeMismatch(Exception ex, WebRequest request) {
+
+        ApiError apiError = ApiError.TYPE_MISMATCH;
+        ProblemDetail pd = problemDetailProvider(request, apiError);
+
+        return new ResponseEntity<>(pd, apiError.getStatus());
+    }
+
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ProblemDetail> apiExceptionHandler(WebRequest request, ApiException apiException) {
         ApiError apiError = apiException.getApiError();
@@ -86,7 +101,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(pb, apiError.getStatus());
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ProblemDetail> genericExceptionHandler(WebRequest request, ApiException apiException) {
         ApiError apiError = apiException.getApiError();
         ProblemDetail pb = problemDetailProvider(request, apiError);
