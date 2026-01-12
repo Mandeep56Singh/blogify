@@ -45,9 +45,6 @@ public class UserController {
             @RequestParam(value = "pageNumber", defaultValue = "1", required = false) Integer pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) Integer pageSize
     ) {
-        pageNumber = pageNumber <= 0 ? 1 : pageNumber;
-        pageSize = pageSize <= 0 ? 5 : pageSize;
-
         PaginatedResponseDto<UserResponseDto> responseDto = userService.getAll(pageNumber, pageSize);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }

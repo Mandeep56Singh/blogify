@@ -4,6 +4,9 @@ import com.mandeep.blogify.dto.PaginatedResponseDto;
 import com.mandeep.blogify.dto.user.UserRequestDto;
 import com.mandeep.blogify.dto.user.UserResponseDto;
 import com.mandeep.blogify.entities.User;
+import com.mandeep.blogify.enums.Constants;
+import com.mandeep.blogify.exceptions.ApiError;
+import com.mandeep.blogify.exceptions.ApiException;
 import com.mandeep.blogify.mapper.user.UserMapper;
 import com.mandeep.blogify.repositories.UserRepository;
 import jakarta.validation.Valid;
@@ -31,8 +34,21 @@ public class UserService {
     @Transactional(readOnly = true)
     public PaginatedResponseDto<UserResponseDto> getAll(Integer pageNumber, Integer pageSize) {
 
+        if (pageNumber - 1 < 0) {
+            throw new ApiException(ApiError.INVALID_PAGE_NUMBER);
+        }
+
+        if (pageSize <= 0 || pageSize > Constants.MAX_PAGE_SIZE.getVal()) {
+            throw new ApiException(ApiError.INVALID_PAGE_SIZE);
+        }
+
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Page<User> pageUser = userRepository.findAll(pageable);
+
+        if (pageNumber - 1 > pageUser.getTotalPages()) {
+            throw new ApiException(ApiError.INVALID_PAGE_NUMBER);
+        }
+
         List<User> users = pageUser.getContent();
 
         List<UserResponseDto> usersDtoList = mapper.toDtoList(users);
@@ -51,7 +67,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponseDto getUserById(@NotNull UUID id) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("user doesn't exists")
+                () -> new ApiException(ApiError.USER_NOT_FOUND)
         );
         return mapper.toDto(user);
     }
@@ -59,7 +75,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponseDto getUserByEmail(@NotNull @Email String email) {
         User user = userRepository.findUserByEmail(email).orElseThrow(
-                () -> new RuntimeException("user with email not found")
+                () -> new ApiException(ApiError.EMAIL_NOT_FOUND)
         );
         return mapper.toDto(user);
     }
@@ -68,7 +84,7 @@ public class UserService {
     public UserResponseDto createUser(@Valid UserRequestDto requestDto) {
         User user = mapper.toEntity(requestDto);
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new ApiException(ApiError.EMAIL_ALREADY_EXISTS);
         }
         User newUser = userRepository.save(user);
         return mapper.toDto(newUser);
@@ -77,7 +93,7 @@ public class UserService {
     @Transactional
     public UserResponseDto updateUser(@Valid UserRequestDto requestDto, @NotNull UUID id) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("user doesn't exits")
+                () -> new ApiException(ApiError.EMAIL_NOT_FOUND)
         );
 
         user.setEmail(requestDto.email());
@@ -92,7 +108,7 @@ public class UserService {
     @Transactional
     public void deleteUser(@NotNull UUID id) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("user doesn't exits")
+                () -> new ApiException(ApiError.EMAIL_NOT_FOUND)
         );
         user.softDelete();
         userRepository.save(user);
