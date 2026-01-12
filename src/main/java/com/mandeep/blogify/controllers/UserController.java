@@ -1,5 +1,6 @@
 package com.mandeep.blogify.controllers;
 
+import com.mandeep.blogify.dto.PaginatedResponseDto;
 import com.mandeep.blogify.dto.user.UserRequestDto;
 import com.mandeep.blogify.dto.user.UserResponseDto;
 import com.mandeep.blogify.services.UserService;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -41,9 +41,15 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getUsers() {
-        List<UserResponseDto> responseDtos = userService.getAll();
-        return new ResponseEntity<>(responseDtos, HttpStatus.OK);
+    public ResponseEntity<PaginatedResponseDto<UserResponseDto>> getUsers(
+            @RequestParam(value = "pageNumber", defaultValue = "1", required = false) Integer pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "5", required = false) Integer pageSize
+    ) {
+        pageNumber = pageNumber <= 0 ? 1 : pageNumber;
+        pageSize = pageSize <= 0 ? 5 : pageSize;
+
+        PaginatedResponseDto<UserResponseDto> responseDto = userService.getAll(pageNumber, pageSize);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @PostMapping
@@ -52,6 +58,23 @@ public class UserController {
     ) {
         UserResponseDto responseDto = userService.createUser(requestDto);
         return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "{id}")
+    public ResponseEntity<UserResponseDto> updateUser(
+            @Valid @RequestBody UserRequestDto requestDto,
+            @PathVariable @NotNull UUID id
+    ) {
+        UserResponseDto responseDto = userService.updateUser(requestDto, id);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable @NotNull UUID id
+    ) {
+        userService.deleteUser(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 
