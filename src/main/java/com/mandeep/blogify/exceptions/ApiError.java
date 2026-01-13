@@ -5,6 +5,8 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ApiError {
+
+    //    user
     USER_NOT_FOUND(
             "/user-not-found",
             HttpStatus.NOT_FOUND,
@@ -23,8 +25,24 @@ public enum ApiError {
             "/email-already-exits",
             HttpStatus.CONFLICT,
             "email already exists",
-            "Email already exists, plesae try different email",
+            "Email already exists, please try different email",
             "EMAIL_ALREADY_EXISTS"
+    ),
+
+    //    Category
+    CATEGORY_ALREADY_EXITS(
+            "/category-already-exists",
+            HttpStatus.CONFLICT,
+            "category already exists",
+            "Category already exists, please try different category title",
+            "CATEGORY_ALREADY_EXISTS"
+    ),
+    CATEGORY_NOT_FOUND(
+            "/category-not-found",
+            HttpStatus.NOT_FOUND,
+            "category not found",
+            "Category not found, please try different category",
+            "CATEGORY_NOT_FOUND"
     ),
     INTERNAL_SERVER_ERROR(
             "/internal-server-error",
@@ -39,6 +57,13 @@ public enum ApiError {
             "Validation failed",
             "Please check the input and try again",
             "VALIDATION_ERROR"
+    ),
+    TYPE_MISMATCH(
+            "/type-mismatch",
+            HttpStatus.BAD_REQUEST,
+            "Invalid parameter type",
+            "One or more parameters have invalid types, please check the request",
+            "TYPE_MISMATCH"
     ),
     INVALID_PAGE_NUMBER(
             "/invalid-page-number",
@@ -56,11 +81,11 @@ public enum ApiError {
     ),
     ;
 
-    private String type;
-    private HttpStatus status;
-    private String title;
-    private String detail;
-    private String errorcode;
+    private final String type;
+    private final HttpStatus status;
+    private final String title;
+    private final String detail;
+    private final String errorcode;
 
     ApiError(String type, HttpStatus status, String title, String detail, String errorcode) {
         this.type = type;

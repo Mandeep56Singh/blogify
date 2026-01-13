@@ -95,15 +95,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ProblemDetail> apiExceptionHandler(WebRequest request, ApiException apiException) {
+    public ResponseEntity<ProblemDetail> apiExceptionHandler(ApiException apiException, WebRequest request) {
         ApiError apiError = apiException.getApiError();
         ProblemDetail pb = problemDetailProvider(request, apiError);
         return new ResponseEntity<>(pb, apiError.getStatus());
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ProblemDetail> genericExceptionHandler(WebRequest request, ApiException apiException) {
-        ApiError apiError = apiException.getApiError();
+    public ResponseEntity<ProblemDetail> genericExceptionHandler(Exception ex, WebRequest request) {
+        ApiError apiError = ApiError.INTERNAL_SERVER_ERROR;
         ProblemDetail pb = problemDetailProvider(request, apiError);
         return new ResponseEntity<>(pb, apiError.getStatus());
     }

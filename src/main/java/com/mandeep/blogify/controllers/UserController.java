@@ -13,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
 @RestController
 @Validated
 @RequiredArgsConstructor
@@ -26,7 +24,7 @@ public class UserController {
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<UserResponseDto> getUserById(
-            @PathVariable("id") @NotNull UUID id
+            @PathVariable("id") @NotNull Long id
     ) {
         UserResponseDto responseDto = userService.getUserById(id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -34,7 +32,7 @@ public class UserController {
 
     @GetMapping(value = "/by-email")
     public ResponseEntity<UserResponseDto> getUserByEmail(
-            @RequestParam(required = true) @Email String email
+            @RequestParam @Email String email
     ) {
         UserResponseDto responseDto = userService.getUserByEmail(email);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -60,7 +58,7 @@ public class UserController {
     @PostMapping(value = "{id}")
     public ResponseEntity<UserResponseDto> updateUser(
             @Valid @RequestBody UserRequestDto requestDto,
-            @PathVariable @NotNull UUID id
+            @PathVariable @NotNull Long id
     ) {
         UserResponseDto responseDto = userService.updateUser(requestDto, id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
@@ -68,7 +66,7 @@ public class UserController {
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteUser(
-            @PathVariable @NotNull UUID id
+            @PathVariable @NotNull Long id
     ) {
         userService.deleteUser(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

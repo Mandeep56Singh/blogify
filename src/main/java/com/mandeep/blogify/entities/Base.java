@@ -5,34 +5,28 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.UUID;
 
 @MappedSuperclass
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public sealed class Base permits User {
+public sealed class Base permits Category, User {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false, nullable = false)
-    private UUID id;
+    private Long id;
 
-    @CreationTimestamp
     @Column(updatable = false, nullable = false)
     private Instant createdAt;
 
-    @UpdateTimestamp
     @Column(nullable = false)
     private Instant lastModifiedAt;
 
     private boolean isDeleted = false;
 
     private Instant deletedAt = null;
-
 
     @Version
     @Column(nullable = false)
@@ -43,6 +37,17 @@ public sealed class Base permits User {
             this.isDeleted = true;
             this.deletedAt = Instant.now(Clock.systemUTC());
         }
+    }
+
+    @PrePersist
+    public void beforeSave() {
+        createdAt = Instant.now(Clock.systemUTC());
+        lastModifiedAt = Instant.now(Clock.systemUTC());
+    }
+
+    @PreUpdate
+    public void beforeUpdate() {
+        lastModifiedAt = Instant.now(Clock.systemUTC());
     }
 
 }

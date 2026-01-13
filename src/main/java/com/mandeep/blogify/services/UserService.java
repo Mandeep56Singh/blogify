@@ -7,7 +7,7 @@ import com.mandeep.blogify.entities.User;
 import com.mandeep.blogify.enums.Constants;
 import com.mandeep.blogify.exceptions.ApiError;
 import com.mandeep.blogify.exceptions.ApiException;
-import com.mandeep.blogify.mapper.user.UserMapper;
+import com.mandeep.blogify.mapper.UserMapper;
 import com.mandeep.blogify.repositories.UserRepository;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +52,7 @@ public class UserService {
 
         List<UserResponseDto> usersDtoList = mapper.toDtoList(users);
 
-        return new PaginatedResponseDto<UserResponseDto>(
+        return new PaginatedResponseDto<>(
                 usersDtoList,
                 pageNumber,
                 pageSize,
@@ -65,7 +64,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponseDto getUserById(@NotNull UUID id) {
+    public UserResponseDto getUserById(@NotNull Long id) {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new ApiException(ApiError.USER_NOT_FOUND)
         );
@@ -91,9 +90,9 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDto updateUser(@Valid UserRequestDto requestDto, @NotNull UUID id) {
+    public UserResponseDto updateUser(@Valid UserRequestDto requestDto, @NotNull Long id) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new ApiException(ApiError.EMAIL_NOT_FOUND)
+                () -> new ApiException(ApiError.USER_NOT_FOUND)
         );
 
         user.setEmail(requestDto.email());
@@ -106,9 +105,9 @@ public class UserService {
 
 
     @Transactional
-    public void deleteUser(@NotNull UUID id) {
+    public void deleteUser(@NotNull Long id) {
         User user = userRepository.findById(id).orElseThrow(
-                () -> new ApiException(ApiError.EMAIL_NOT_FOUND)
+                () -> new ApiException(ApiError.USER_NOT_FOUND)
         );
         user.softDelete();
         userRepository.save(user);

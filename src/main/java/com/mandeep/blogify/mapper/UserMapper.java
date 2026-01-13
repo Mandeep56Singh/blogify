@@ -1,4 +1,4 @@
-package com.mandeep.blogify.mapper.user;
+package com.mandeep.blogify.mapper;
 
 import com.mandeep.blogify.dto.user.UserRequestDto;
 import com.mandeep.blogify.dto.user.UserResponseDto;
