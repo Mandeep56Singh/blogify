@@ -1,5 +1,6 @@
 package com.mandeep.blogify.exceptions;
 
+import com.mandeep.blogify.constants.ApiError;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -50,6 +52,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(pd, apiError.getStatus());
     }
 
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
+
+        ApiError apiError = ApiError.IMAGE_TOO_LARGE;
+        ProblemDetail pd = problemDetailProvider(request, apiError);
+
+        return new ResponseEntity<>(pd, status);
+    }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ProblemDetail> handleConstraintViolationException(
@@ -85,7 +99,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             org.hibernate.type.descriptor.java.CoercionException.class,
             IllegalArgumentException.class
     })
-    public ResponseEntity<ProblemDetail> handleTypeMismatch(Exception ex, WebRequest request) {
+    public ResponseEntity<ProblemDetail> handleCustomTypeMismatch(Exception ex, WebRequest request) {
 
         ApiError apiError = ApiError.TYPE_MISMATCH;
         ProblemDetail pd = problemDetailProvider(request, apiError);

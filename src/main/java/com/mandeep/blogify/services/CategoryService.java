@@ -1,11 +1,11 @@
 package com.mandeep.blogify.services;
 
+import com.mandeep.blogify.constants.ApiError;
+import com.mandeep.blogify.constants.AppConstants;
 import com.mandeep.blogify.dto.PaginatedResponseDto;
 import com.mandeep.blogify.dto.category.CategoryRequestDto;
 import com.mandeep.blogify.dto.category.CategoryResponseDto;
 import com.mandeep.blogify.entities.Category;
-import com.mandeep.blogify.enums.Constants;
-import com.mandeep.blogify.exceptions.ApiError;
 import com.mandeep.blogify.exceptions.ApiException;
 import com.mandeep.blogify.mapper.CategoryMapper;
 import com.mandeep.blogify.repositories.CategoryRepository;
@@ -35,7 +35,7 @@ public class CategoryService {
             throw new ApiException(ApiError.INVALID_PAGE_NUMBER);
         }
 
-        if (pageSize <= 0 || pageSize > Constants.MAX_PAGE_SIZE.getVal()) {
+        if (pageSize <= 0 || pageSize > AppConstants.MAX_PAGE_SIZE) {
             throw new ApiException(ApiError.INVALID_PAGE_SIZE);
         }
 

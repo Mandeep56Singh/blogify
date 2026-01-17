@@ -2,12 +2,15 @@ package com.mandeep.blogify.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -22,6 +25,9 @@ public non-sealed class Category extends Base {
 
     @Column(length = 1000)
     private String description;
+
+    @ManyToMany(mappedBy = "categories")
+    private List<Post> posts = new ArrayList<>();
 
     public Category(String title) {
         this.title = title;

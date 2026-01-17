@@ -1,11 +1,11 @@
 package com.mandeep.blogify.services;
 
+import com.mandeep.blogify.constants.ApiError;
+import com.mandeep.blogify.constants.AppConstants;
 import com.mandeep.blogify.dto.PaginatedResponseDto;
 import com.mandeep.blogify.dto.user.UserRequestDto;
 import com.mandeep.blogify.dto.user.UserResponseDto;
 import com.mandeep.blogify.entities.User;
-import com.mandeep.blogify.enums.Constants;
-import com.mandeep.blogify.exceptions.ApiError;
 import com.mandeep.blogify.exceptions.ApiException;
 import com.mandeep.blogify.mapper.UserMapper;
 import com.mandeep.blogify.repositories.UserRepository;
@@ -37,14 +37,14 @@ public class UserService {
             throw new ApiException(ApiError.INVALID_PAGE_NUMBER);
         }
 
-        if (pageSize <= 0 || pageSize > Constants.MAX_PAGE_SIZE.getVal()) {
+        if (pageSize <= 0 || pageSize > AppConstants.MAX_PAGE_SIZE) {
             throw new ApiException(ApiError.INVALID_PAGE_SIZE);
         }
 
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Page<User> pageUser = userRepository.findAll(pageable);
 
-        if (pageNumber - 1 > pageUser.getTotalPages()) {
+        if (pageNumber  > pageUser.getTotalPages()) {
             throw new ApiException(ApiError.INVALID_PAGE_NUMBER);
         }
 
@@ -60,7 +60,6 @@ public class UserService {
                 pageUser.getTotalPages(),
                 pageUser.isLast()
         );
-
     }
 
     @Transactional(readOnly = true)
@@ -112,4 +111,11 @@ public class UserService {
         user.softDelete();
         userRepository.save(user);
     }
+
+    public User getById(Long id) {
+        return userRepository.findById(id).orElseThrow(
+                () -> new ApiException(ApiError.USER_NOT_FOUND)
+        );
+    }
+
 }

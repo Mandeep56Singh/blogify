@@ -1,5 +1,6 @@
 package com.mandeep.blogify.exceptions;
 
+import com.mandeep.blogify.constants.ApiError;
 import lombok.Getter;
 
 @Getter

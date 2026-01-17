@@ -12,7 +12,7 @@ import java.time.Instant;
 @MappedSuperclass
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public sealed class Base permits Category, User {
+public sealed class Base permits Category, Post, User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false, nullable = false)
