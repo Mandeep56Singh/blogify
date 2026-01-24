@@ -1,9 +1,6 @@
 package com.mandeep.blogify.common;
 
 
-import com.mandeep.blogify.category.Category;
-import com.mandeep.blogify.post.Post;
-import com.mandeep.blogify.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

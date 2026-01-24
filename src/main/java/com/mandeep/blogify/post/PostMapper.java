@@ -1,9 +1,9 @@
 package com.mandeep.blogify.post;
 
+import com.mandeep.blogify.category.Category;
 import com.mandeep.blogify.post.dto.AuthorDto;
 import com.mandeep.blogify.post.dto.CategoryDto;
 import com.mandeep.blogify.post.dto.PostResponseDto;
-import com.mandeep.blogify.category.Category;
 import com.mandeep.blogify.user.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;

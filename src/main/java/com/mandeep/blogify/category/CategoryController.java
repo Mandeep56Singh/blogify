@@ -1,8 +1,8 @@
 package com.mandeep.blogify.category;
 
-import com.mandeep.blogify.common.PaginatedResponseDto;
 import com.mandeep.blogify.category.dto.CategoryRequestDto;
 import com.mandeep.blogify.category.dto.CategoryResponseDto;
+import com.mandeep.blogify.common.PaginatedResponseDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;

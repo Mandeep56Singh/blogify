@@ -20,7 +20,7 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping
-    public ResponseEntity<PaginatedResponseDto<PostResponseDto> > getAllPost(
+    public ResponseEntity<PaginatedResponseDto<PostResponseDto>> getAllPost(
             @RequestParam(name = "pageNumber", defaultValue = "1", required = false) Integer pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) Integer pageSize
     ) {
@@ -46,7 +46,7 @@ public class PostController {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<PostResponseDto> updatePost (
+    public ResponseEntity<PostResponseDto> updatePost(
             @Valid @RequestBody PostRequestDto requestDto,
             @PathVariable @NotNull Long id
     ) {
@@ -55,7 +55,7 @@ public class PostController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Void> deletePost (
+    public ResponseEntity<Void> deletePost(
             @PathVariable @NotNull Long id
     ) {
         postService.deletePost(id);

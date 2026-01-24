@@ -1,11 +1,11 @@
 package com.mandeep.blogify.user;
 
+import com.mandeep.blogify.common.PaginatedResponseDto;
+import com.mandeep.blogify.common.exceptions.ApiException;
 import com.mandeep.blogify.constants.ApiError;
 import com.mandeep.blogify.constants.AppConstants;
-import com.mandeep.blogify.common.PaginatedResponseDto;
 import com.mandeep.blogify.user.dto.UserRequestDto;
 import com.mandeep.blogify.user.dto.UserResponseDto;
-import com.mandeep.blogify.common.exceptions.ApiException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -26,6 +27,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public PaginatedResponseDto<UserResponseDto> getAll(Integer pageNumber, Integer pageSize) {
@@ -73,25 +75,31 @@ public class UserService {
 
     @Transactional
     public UserResponseDto createUser(@Valid UserRequestDto requestDto) {
-        User user = mapper.toEntity(requestDto);
-        if (userRepository.existsByEmail(user.getEmail())) {
+        if (userRepository.existsByEmail(requestDto.email())) {
             throw new ApiException(ApiError.EMAIL_ALREADY_EXISTS);
         }
+
+        String email = requestDto.email();
+        String passwordHash = passwordEncoder.encode(requestDto.password());
+
+        User user = new User(email, passwordHash);
+        user.setName(requestDto.name());
+        user.setRole(Role.USER);
         User newUser = userRepository.save(user);
+
         return mapper.toDto(newUser);
     }
 
     @Transactional
     public UserResponseDto updateUser(@Valid UserRequestDto requestDto, @NotNull Long id) {
-        User user = userRepository.findById(id).orElseThrow(
-                () -> new ApiException(ApiError.USER_NOT_FOUND)
-        );
+
+        User user = getById(id);
 
         user.setEmail(requestDto.email());
         user.setName(requestDto.name());
-        user.setPassword(requestDto.password());
-
+        user.setPassword(passwordEncoder.encode(requestDto.password()));
         User updatedUser = userRepository.save(user);
+
         return mapper.toDto(updatedUser);
     }
 

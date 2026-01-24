@@ -1,14 +1,14 @@
 package com.mandeep.blogify.post;
 
-import com.mandeep.blogify.constants.ApiError;
+import com.mandeep.blogify.category.Category;
+import com.mandeep.blogify.category.CategoryRepository;
 import com.mandeep.blogify.common.PaginatedResponseDto;
+import com.mandeep.blogify.common.exceptions.ApiException;
+import com.mandeep.blogify.constants.ApiError;
 import com.mandeep.blogify.post.dto.PostRequestDto;
 import com.mandeep.blogify.post.dto.PostResponseDto;
-import com.mandeep.blogify.category.Category;
-import com.mandeep.blogify.user.UserService;
 import com.mandeep.blogify.user.User;
-import com.mandeep.blogify.common.exceptions.ApiException;
-import com.mandeep.blogify.category.CategoryRepository;
+import com.mandeep.blogify.user.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -73,7 +73,7 @@ public class PostService {
         List<Post> posts = postPage.getContent();
         return new PaginatedResponseDto<>(
                 mapper.toDtoList(posts),
-                pageNumber ,
+                pageNumber,
                 pageSize,
                 postPage.getTotalElements(),
                 postPage.getTotalPages(),
@@ -119,7 +119,7 @@ public class PostService {
             throw new ApiException(ApiError.CATEGORY_NOT_FOUND);
         }
 
-        return  new HashSet<>(categories);
+        return new HashSet<>(categories);
     }
 
 }

@@ -1,8 +1,8 @@
 package com.mandeep.blogify.image;
 
+import com.mandeep.blogify.common.exceptions.ApiException;
 import com.mandeep.blogify.constants.ApiError;
 import com.mandeep.blogify.constants.AppConstants;
-import com.mandeep.blogify.common.exceptions.ApiException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.apache.tika.Tika;

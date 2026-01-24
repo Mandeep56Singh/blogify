@@ -17,3 +17,8 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+rsa:
+
+  private-key: classpath:certs/private_key.pem
+  public-key: classpath:certs/public_key.pem
+  token-expire-in: 7d

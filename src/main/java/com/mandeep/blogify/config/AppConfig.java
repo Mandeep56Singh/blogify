@@ -1,0 +1,8 @@
+package com.mandeep.blogify.config;
+
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class AppConfig {
+
+}

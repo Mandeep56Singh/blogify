@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -107,6 +108,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(pd, apiError.getStatus());
     }
 
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ProblemDetail> userNameNotFoundHandler(UsernameNotFoundException ex, WebRequest request) {
+        ApiError apiError = ApiError.USER_NOT_FOUND;
+        ProblemDetail pb = problemDetailProvider(request, apiError);
+        return new ResponseEntity<>(pb, apiError.getStatus());
+    }
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ProblemDetail> apiExceptionHandler(ApiException apiException, WebRequest request) {
