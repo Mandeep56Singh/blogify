@@ -1,6 +1,6 @@
 package com.mandeep.blogify;
 
-import com.mandeep.blogify.auth.RsaKeyProperties;
+import com.mandeep.blogify.auth.config.RsaKeyProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
