@@ -1,6 +1,6 @@
 package com.mandeep.blogify.blog.application.mapping;
 
-import com.mandeep.blogify.blog.application.dto.PostResponseDto;
+import com.mandeep.blogify.blog.application.dto.response.PostResponseDto;
 import com.mandeep.blogify.blog.domain.entity.Post;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;

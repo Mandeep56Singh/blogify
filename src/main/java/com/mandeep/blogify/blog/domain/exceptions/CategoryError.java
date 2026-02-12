@@ -1,10 +1,9 @@
-package com.mandeep.blogify.blog.domain.exceptions.category;
+package com.mandeep.blogify.blog.domain.exceptions;
 
 import com.mandeep.blogify.shared.exceptions.AppError;
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-@Getter
+
 public enum CategoryError implements AppError {
 
     CATEGORY_ALREADY_EXITS(
@@ -35,5 +34,30 @@ public enum CategoryError implements AppError {
         this.title = title;
         this.detail = detail;
         this.errorCode = errorcode;
+    }
+
+    @Override
+    public String errorCode() {
+        return errorCode;
+    }
+
+    @Override
+    public String detail() {
+        return detail;
+    }
+
+    @Override
+    public String title() {
+        return title;
+    }
+
+    @Override
+    public HttpStatus status() {
+        return status;
+    }
+
+    @Override
+    public String type() {
+        return type;
     }
 }

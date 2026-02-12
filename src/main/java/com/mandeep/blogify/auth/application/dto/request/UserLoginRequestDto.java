@@ -1,11 +1,10 @@
-package com.mandeep.blogify.auth.application.dto;
+package com.mandeep.blogify.auth.application.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-public record UserSignUpDto(
-        String name,
+public record UserLoginRequestDto(
 
         @NotBlank
         @Email
@@ -17,5 +16,6 @@ public record UserSignUpDto(
                 message = "must be at least 8 characters long and include uppercase, lowercase, number, and special character"
         )
         String password
+
 ) {
 }

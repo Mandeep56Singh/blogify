@@ -1,4 +1,4 @@
-package com.mandeep.blogify.auth.application.dto;
+package com.mandeep.blogify.auth.application.dto.response;
 
 public record AuthUserDto(
         Long id,

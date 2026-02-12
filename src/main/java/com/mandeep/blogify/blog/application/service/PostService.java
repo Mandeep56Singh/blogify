@@ -1,34 +1,30 @@
 package com.mandeep.blogify.blog.application.service;
 
-import com.mandeep.blogify.blog.application.dto.PostRequestDto;
-import com.mandeep.blogify.blog.application.dto.PostResponseDto;
+import com.mandeep.blogify.blog.application.dto.request.PostRequestDto;
+import com.mandeep.blogify.blog.application.dto.response.PostResponseDto;
 import com.mandeep.blogify.blog.application.mapping.PostMapper;
 import com.mandeep.blogify.blog.domain.entity.Category;
 import com.mandeep.blogify.blog.domain.entity.Post;
-import com.mandeep.blogify.blog.domain.exceptions.category.CategoryError;
-import com.mandeep.blogify.blog.domain.exceptions.post.PostError;
+import com.mandeep.blogify.blog.domain.exceptions.CategoryError;
+import com.mandeep.blogify.blog.domain.exceptions.PostError;
 import com.mandeep.blogify.blog.domain.repository.PostRepository;
 import com.mandeep.blogify.shared.dto.PaginatedResponseDto;
-import com.mandeep.blogify.shared.exceptions.ApiException;
-import com.mandeep.blogify.shared.exceptions.PageError;
+import com.mandeep.blogify.shared.dto.ResponseDto;
 import com.mandeep.blogify.user.UserFacade;
 import com.mandeep.blogify.user.UserView;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
-@Validated
 @RequiredArgsConstructor
 public class PostService {
 
@@ -38,92 +34,88 @@ public class PostService {
     private final PostMapper mapper;
 
     @Transactional
-    public PostResponseDto createPost(@Valid PostRequestDto requestDto) {
-        UserView author = userFacade.getUserById(requestDto.authorId());
+    public ResponseDto<PostResponseDto> createPost(PostRequestDto requestDto) {
+        Optional<UserView> author = userFacade.getUserById(requestDto.authorId());
+
+        if (author.isEmpty()) {
+            return ResponseDto.failure(PostError.AUTHOR_NOT_FOUND);
+        }
+
+        if(postRepository.existsByTitle(requestDto.title())) {
+            return ResponseDto.failure(PostError.POST_ALREADY_EXITS);
+        }
+
         List<Category> categories = categoryService.getCategoriesById(requestDto.categoryIds());
 
         if (categories.size() < requestDto.categoryIds().size()) {
-            throw new ApiException(CategoryError.CATEGORY_NOT_FOUND);
+            return ResponseDto.failure(CategoryError.CATEGORY_NOT_FOUND);
         }
 
-        Post post = new Post(
-                requestDto.title(),
-                requestDto.content(),
-                author.id(),
-                new HashSet<>(categories)
-        );
+        Post post = new Post(requestDto.title(), requestDto.content(), author.get().id(), new HashSet<>(categories));
 
         Post createdPost = postRepository.save(post);
-        return mapper.toDto(createdPost);
+        return ResponseDto.success(mapper.toDto(createdPost));
     }
 
     @Transactional(readOnly = true)
-    public PaginatedResponseDto<PostResponseDto> getAllPosts(Integer pageNumber, Integer pageSize) {
-
-        if (pageNumber - 1 < 0) {
-            throw new ApiException(PageError.INVALID_PAGE_NUMBER);
-        }
-        if (pageSize <= 0) {
-            throw new ApiException(PageError.INVALID_PAGE_SIZE);
-        }
+    public ResponseDto<PaginatedResponseDto<PostResponseDto>> getAllPosts(Integer pageNumber, Integer pageSize) {
 
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Page<Post> postPage = postRepository.findAll(pageable);
 
-        if (pageNumber - 1 > postPage.getTotalPages()) {
-            throw new ApiException(PageError.INVALID_PAGE_NUMBER);
-        }
 
         List<Post> posts = postPage.getContent();
-        return new PaginatedResponseDto<>(
-                mapper.toDtoList(posts),
-                pageNumber,
-                pageSize,
-                postPage.getTotalElements(),
-                postPage.getTotalPages(),
-                postPage.isLast()
-        );
+        return ResponseDto.success(new PaginatedResponseDto<>(mapper.toDtoList(posts), pageNumber, pageSize, postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast()));
     }
 
     @Transactional(readOnly = true)
-    public PostResponseDto getPostById(@NotNull Long id) {
-        Post post = getById(id);
-        return mapper.toDto(post);
+    public ResponseDto<PostResponseDto> getPostById(Long id) {
+        return getById(id).map(post -> ResponseDto.success(mapper.toDto(post))).orElseGet(() -> ResponseDto.failure(PostError.POST_NOT_FOUND));
     }
 
     @Transactional
-    public PostResponseDto updatePost(@Valid PostRequestDto requestDto, @NotNull Long id) {
-        Post post = getById(id);
-        Set<Category> updatedCategories = getPostCategories(requestDto.categoryIds());
+    public ResponseDto<PostResponseDto> updatePost(PostRequestDto requestDto, Long id) {
+        return getById(id).map(post ->
 
-        post.setTitle(requestDto.title());
-        post.setContent(requestDto.content());
-        post.getCategories().clear();
-        post.getCategories().addAll(updatedCategories);
+                getPostCategories(requestDto.categoryIds()).map(
+                        (updatedCategories) -> {
+                            post.setTitle(requestDto.title());
+                            post.setContent(requestDto.content());
+                            post.getCategories().clear();
+                            post.getCategories().addAll(updatedCategories);
 
-        return mapper.toDto(post);
+                            return ResponseDto.success(mapper.toDto(post));
+                        }
+                ).orElseGet(() -> ResponseDto.failure(CategoryError.CATEGORY_NOT_FOUND))
+
+        ).orElseGet(() -> ResponseDto.failure(PostError.POST_NOT_FOUND));
+
     }
 
     @Transactional
-    public void deletePost(@NotNull Long id) {
-        Post post = getById(id);
-        post.softDelete();
+    public Optional<ResponseDto<?>> deletePost(Long id) {
+        Optional<Post> post = getById(id);
+        if (post.isPresent()) {
+            post.get().softDelete();
+            return Optional.empty();
+        }
+        return Optional.of(ResponseDto.failure(PostError.POST_NOT_FOUND));
     }
 
-    public Post getById(Long id) {
-        return postRepository.findById(id).orElseThrow(
-                () -> new ApiException(PostError.POST_NOT_FOUND)
-        );
+    @Transactional(readOnly = true)
+    public Optional<Post> getById(Long id) {
+        return postRepository.findById(id);
     }
 
-    public Set<Category> getPostCategories(List<Long> categoryIds) {
+    @Transactional(readOnly = true)
+    public Optional<Set<Category>> getPostCategories(List<Long> categoryIds) {
         List<Category> categories = categoryService.getCategoriesById(categoryIds);
 
         if (categories.size() < categoryIds.size()) {
-            throw new ApiException(CategoryError.CATEGORY_NOT_FOUND);
+            return Optional.empty();
         }
 
-        return new HashSet<>(categories);
+        return Optional.of(new HashSet<>(categories));
     }
 
 }

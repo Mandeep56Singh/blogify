@@ -1,48 +1,66 @@
 package com.mandeep.blogify.blog.ui;
 
 
-import com.mandeep.blogify.blog.application.dto.ImageDto;
+import com.mandeep.blogify.blog.application.constants.ImageConstants;
+import com.mandeep.blogify.blog.application.dto.response.ImageDto;
+import com.mandeep.blogify.blog.application.dto.response.ImageResourceDto;
 import com.mandeep.blogify.blog.application.service.ImageService;
-import com.mandeep.blogify.blog.domain.entity.Image;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.mandeep.blogify.shared.dto.ResponseDto;
+import com.mandeep.blogify.shared.dto.ResponsePayload;
+import com.mandeep.blogify.shared.exceptions.validation.RequestValidator;
+import com.mandeep.blogify.shared.exceptions.validation.StringIdWrapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@Validated
 @RequestMapping(value = "/api/v1/images")
 class ImageController {
 
     private final ImageService imageService;
+    private final RequestValidator validator;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ImageDto> saveImage(
-            @RequestParam("file") @NotNull MultipartFile file
+    public ResponseEntity<ResponseDto<ImageDto>> saveImage(
+            @RequestParam("file") MultipartFile file
     ) throws IOException {
-        ImageDto imageDto = imageService.uploadImage(file);
+
+        ResponseDto<ImageDto> imageDto = imageService.uploadImage(file);
+        if (!imageDto.success()) {
+            return new ResponseEntity<>(imageDto, imageDto.error().status());
+        }
         return new ResponseEntity<>(imageDto, HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Resource> getImage(
-            @PathVariable @NotBlank String id
+    public ResponseEntity<?> getImage(
+            @PathVariable String id
     ) {
-        Resource resource = imageService.loadImage(id);
-        Image image = imageService.getById(id);
+        Optional<ResponseDto<ResponsePayload>> violationError = validator.validate(new StringIdWrapper(id));
+        if (violationError.isPresent()) {
+            return new ResponseEntity<>(violationError, violationError.get().error().status());
+        }
+
+        ResponseDto<ImageResourceDto> responseDto = imageService.loadImage(id);
+
+        if (!responseDto.success()) {
+            return new ResponseEntity<>(responseDto, responseDto.error().status());
+        }
+        String contentType = Optional.ofNullable(responseDto.metaData())
+                .map(m -> m.get(ImageConstants.CONTENT_TYPE))
+                .map(Object::toString)
+                .orElse("image/jpeg");
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(image.getContentType()))
-                .body(resource);
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(responseDto.data().resource());
     }
 
 }

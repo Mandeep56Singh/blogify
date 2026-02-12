@@ -1,10 +1,8 @@
-package com.mandeep.blogify.blog.domain.exceptions.imageUpload;
+package com.mandeep.blogify.blog.domain.exceptions;
 
 import com.mandeep.blogify.shared.exceptions.AppError;
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-@Getter
 public enum ImageUploadError implements AppError {
 
     INVALID_IMAGE_DIRECTORY(
@@ -65,4 +63,28 @@ public enum ImageUploadError implements AppError {
         this.errorCode = errorcode;
     }
 
+    @Override
+    public HttpStatus status() {
+        return status;
+    }
+
+    @Override
+    public String type() {
+        return type;
+    }
+
+    @Override
+    public String title() {
+        return title;
+    }
+
+    @Override
+    public String detail() {
+        return detail;
+    }
+
+    @Override
+    public String errorCode() {
+        return errorCode;
+    }
 }

@@ -1,9 +1,7 @@
 package com.mandeep.blogify.shared.exceptions;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-@Getter
 public enum PageError implements AppError{
 
     INVALID_PAGE_NUMBER(
@@ -36,4 +34,28 @@ public enum PageError implements AppError{
         this.errorCode = errorcode;
     }
 
+    @Override
+    public String detail() {
+        return detail;
+    }
+
+    @Override
+    public String type() {
+        return type;
+    }
+
+    @Override
+    public HttpStatus status() {
+        return status;
+    }
+
+    @Override
+    public String title() {
+        return title;
+    }
+
+    @Override
+    public String errorCode() {
+        return errorCode;
+    }
 }

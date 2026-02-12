@@ -1,8 +1,10 @@
 package com.mandeep.blogify.user;
 
+import java.util.Optional;
+
 public interface UserFacade {
-    UserView createUser(String email, String name, String password);
-    UserView getUserById(Long Id);
-    UserView getUserByEmail(String Email);
+    Optional<UserView> createUser(String email, String name, String password);
+    Optional<UserView> getUserById(Long Id);
+    Optional<UserView> getUserByEmail(String Email);
 
 }

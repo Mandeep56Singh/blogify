@@ -21,7 +21,9 @@ public class AuthUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserView user = userFacade.getUserByEmail(email);
+        UserView user = userFacade.getUserByEmail(email).orElseThrow(
+                () -> new UsernameNotFoundException("Invalid Credentials")
+        );
 
         return new AuthUser(
                 user.id(),

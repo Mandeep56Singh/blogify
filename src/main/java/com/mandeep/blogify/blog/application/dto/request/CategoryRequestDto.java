@@ -1,4 +1,4 @@
-package com.mandeep.blogify.blog.application.dto;
+package com.mandeep.blogify.blog.application.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

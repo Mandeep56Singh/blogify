@@ -1,27 +1,28 @@
 package com.mandeep.blogify.auth.application.service;
 
-import com.mandeep.blogify.auth.application.dto.AuthUserDto;
-import com.mandeep.blogify.auth.application.dto.UserLoginRequestDto;
-import com.mandeep.blogify.auth.application.dto.UserLoginResponseDto;
-import com.mandeep.blogify.auth.application.dto.UserSignUpDto;
+import com.mandeep.blogify.auth.application.dto.request.UserLoginRequestDto;
+import com.mandeep.blogify.auth.application.dto.request.UserSignUpDto;
+import com.mandeep.blogify.auth.application.dto.response.AuthUserDto;
+import com.mandeep.blogify.auth.application.dto.response.UserLoginResponseDto;
 import com.mandeep.blogify.auth.application.mapping.AuthMapper;
 import com.mandeep.blogify.auth.config.RsaKeyProperties;
 import com.mandeep.blogify.auth.domain.AuthUser;
+import com.mandeep.blogify.auth.domain.exception.AuthError;
+import com.mandeep.blogify.shared.dto.ResponseDto;
+import com.mandeep.blogify.shared.exceptions.AppProblem;
 import com.mandeep.blogify.user.UserFacade;
-import com.mandeep.blogify.user.UserView;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 
 @Service
-@Validated
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserFacade userFacade;
@@ -32,30 +33,18 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public UserLoginResponseDto signUp(@Valid UserSignUpDto userDto) {
+    public ResponseDto<UserLoginResponseDto> signUp( UserSignUpDto userDto) {
 
         String email = userDto.email();
         String password = userDto.password();
         String passwordHash = passwordEncoder.encode(userDto.password());
 
-        UserView newUser = userFacade.createUser(email, userDto.name(), passwordHash);
+        // save user credentials to db, if email already present, then return error
+        if (userFacade.createUser(email, userDto.name(), passwordHash).isEmpty()) {
+            return ResponseDto.failure(AppProblem.getDetail(AuthError.EMAIL_ALREADY_EXISTS));
+        }
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        newUser.email(),
-                        password
-                )
-        );
-
-        return buildLoginResponse(authentication);
-    }
-
-
-    @Transactional
-    public UserLoginResponseDto login(@Valid UserLoginRequestDto loginDto) {
-        String email = loginDto.email();
-        String password = loginDto.password();
-
+        // needed to generate authentication token
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         email,
@@ -63,7 +52,24 @@ public class AuthService {
                 )
         );
 
-        return buildLoginResponse(authentication);
+        return ResponseDto.success(buildLoginResponse(authentication));
+    }
+
+
+    @Transactional
+    public ResponseDto<UserLoginResponseDto> login(UserLoginRequestDto loginDto) {
+        String email = loginDto.email();
+        String password = loginDto.password();
+
+        log.info("request data {}", loginDto);
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        email,
+                        password
+                )
+        );
+
+        return ResponseDto.success(buildLoginResponse(authentication));
     }
 
     public UserLoginResponseDto buildLoginResponse(Authentication auth) {

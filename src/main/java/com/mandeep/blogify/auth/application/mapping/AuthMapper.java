@@ -1,6 +1,6 @@
 package com.mandeep.blogify.auth.application.mapping;
 
-import com.mandeep.blogify.auth.application.dto.AuthUserDto;
+import com.mandeep.blogify.auth.application.dto.response.AuthUserDto;
 import com.mandeep.blogify.auth.domain.AuthUser;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

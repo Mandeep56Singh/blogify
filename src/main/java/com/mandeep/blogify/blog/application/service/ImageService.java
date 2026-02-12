@@ -1,20 +1,19 @@
 package com.mandeep.blogify.blog.application.service;
 
-import com.mandeep.blogify.blog.application.dto.ImageDto;
+import com.mandeep.blogify.blog.application.constants.ImageConstants;
+import com.mandeep.blogify.blog.application.dto.response.ImageDto;
+import com.mandeep.blogify.blog.application.dto.response.ImageResourceDto;
 import com.mandeep.blogify.blog.application.mapping.ImageMapper;
 import com.mandeep.blogify.blog.domain.entity.Image;
-import com.mandeep.blogify.blog.domain.exceptions.imageUpload.ImageUploadError;
+import com.mandeep.blogify.blog.domain.exceptions.ImageUploadError;
 import com.mandeep.blogify.blog.domain.repository.ImageRepository;
-import com.mandeep.blogify.shared.AppConstants;
-import com.mandeep.blogify.shared.exceptions.ApiException;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.mandeep.blogify.shared.dto.ResponseDto;
+import com.mandeep.blogify.shared.exceptions.AppProblem;
 import org.apache.tika.Tika;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -24,10 +23,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@Validated
 public class ImageService {
 
     private final ImageRepository imageRepository;
@@ -38,18 +38,19 @@ public class ImageService {
     public ImageService(ImageRepository imageRepository, ImageMapper mapper) throws IOException {
         this.imageRepository = imageRepository;
         this.mapper = mapper;
-        Path path = Paths.get(AppConstants.FILE_PATH).toAbsolutePath().normalize();
+        Path path = Paths.get(ImageConstants.FILE_PATH).toAbsolutePath().normalize();
         Files.createDirectories(path);
         this.rootLocation = path.toRealPath();
     }
 
     @Transactional
-    public ImageDto uploadImage(@NotNull MultipartFile file) throws IOException {
+    public ResponseDto<ImageDto> uploadImage(MultipartFile file) throws IOException {
 
         // checking file type
         String detectedType = tika.detect(file.getInputStream());
         if (!detectedType.startsWith("image/")) {
-            throw new ApiException(ImageUploadError.IMAGE_INVALID_TYPE);
+            AppProblem appProblem = AppProblem.getDetail(ImageUploadError.IMAGE_INVALID_TYPE);
+            return ResponseDto.failure(appProblem);
         }
 
         // generating unique name for file stored
@@ -59,7 +60,8 @@ public class ImageService {
         // Security check: Path traversal attack
         Path destinationPath = rootLocation.resolve(fileId).normalize();
         if (!destinationPath.startsWith(rootLocation)) {
-            throw new ApiException(ImageUploadError.IMAGE_UPLOAD_FAILED);
+            AppProblem appProblem = AppProblem.getDetail(ImageUploadError.IMAGE_UPLOAD_FAILED);
+            return ResponseDto.failure(appProblem);
         }
 
         // efficiently store into local system
@@ -76,30 +78,28 @@ public class ImageService {
         );
 
         Image storedImage = imageRepository.save(image);
-        return mapper.toDto(storedImage);
+        return ResponseDto.success(mapper.toDto(storedImage));
     }
 
     @Transactional
-    public Resource loadImage(@NotBlank String id) {
-        Image image = getById(id);
+    public ResponseDto<ImageResourceDto> loadImage(String id) {
+        Optional<Image> image = imageRepository.findById(id);
+        if (image.isEmpty()) {
+            return ResponseDto.failure(ImageUploadError.IMAGE_NOT_FOUND);
+        }
 
-        Path filePath = Paths.get(image.getPath());
+        Path filePath = Paths.get(image.get().getPath());
 
         try {
             Resource resource = new UrlResource(filePath.toUri());
             if (!resource.exists() || !resource.isReadable()) {
-                throw new ApiException(ImageUploadError.IMAGE_NOT_FOUND);
+                return ResponseDto.failure(ImageUploadError.IMAGE_NOT_FOUND);
             }
-            return resource;
+            return ResponseDto.success(new ImageResourceDto(resource), Map.of(ImageConstants.CONTENT_TYPE, image.get().getContentType()));
         } catch (MalformedURLException ex) {
-            throw new ApiException(ImageUploadError.IMAGE_NOT_FOUND);
+            return ResponseDto.failure(ImageUploadError.IMAGE_NOT_FOUND);
         }
     }
 
-    @Transactional(readOnly = true)
-    public Image getById(@NotNull String id) {
-        return imageRepository.findById(id).orElseThrow(
-                () -> new ApiException(ImageUploadError.IMAGE_NOT_FOUND)
-        );
-    }
+
 }

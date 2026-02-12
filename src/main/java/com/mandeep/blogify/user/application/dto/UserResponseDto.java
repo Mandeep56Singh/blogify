@@ -1,5 +1,6 @@
 package com.mandeep.blogify.user.application.dto;
 
+import com.mandeep.blogify.shared.dto.ResponsePayload;
 import com.mandeep.blogify.user.domain.Role;
 
 import java.time.Instant;
@@ -12,5 +13,5 @@ public record UserResponseDto(
         Instant createdAt,
         Instant lastModifiedAt
 
-) {
+) implements ResponsePayload {
 }

@@ -9,5 +9,5 @@ public record PaginatedResponseDto<T>(
         long totalItems,
         int totalPages,
         boolean lastPage
-) {
+) implements ResponsePayload{
 }
