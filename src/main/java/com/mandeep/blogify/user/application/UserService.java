@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -95,12 +96,6 @@ public class UserService {
         return Optional.empty();
     }
 
-//    @Transactional(readOnly = true)
-//    public UserResponseDto getCurrentUser(@NotNull Authentication auth) {
-//        User user = (User) auth.getPrincipal();
-//        User currentUser = getById(user.getId());
-//        return mapper.toDto(currentUser);
-//    }
 
     public Optional<User> getById(Long id) {
         return userRepository.findById(id);
@@ -127,4 +122,8 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
+    public List<User> getAllIds(Set<Long> ids) {
+        return userRepository.findAllById(ids);
+
+    }
 }

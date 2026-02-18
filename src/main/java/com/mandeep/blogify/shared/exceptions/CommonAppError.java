@@ -11,6 +11,20 @@ public enum CommonAppError implements AppError{
             "Please enter correct email or password",
             "INVALID_CREDENTIAL"
     ),
+    ACCESS_DENIED(
+            "/access-denied",
+            HttpStatus.FORBIDDEN,
+            "Access denied",
+            "You do not have permission to perform this action",
+            "ACCESS_DENIED"
+    ),
+    UNAUTHORIZED_ACCESS(
+            "/unauthorized-access",
+            HttpStatus.UNAUTHORIZED,
+            "Trying to perform action, without authorization",
+            "Please, sign up or login to access this page",
+            "UNAUTHORIZED_ACCESS"
+    ),
     IMAGE_TOO_LARGE(
             "/image-too-large",
             HttpStatus.BAD_REQUEST,

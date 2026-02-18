@@ -3,7 +3,7 @@ package com.mandeep.blogify.shared.dto;
 import java.util.List;
 
 public record PaginatedResponseDto<T>(
-        List<T> data,
+        List<T> items,
         int pageNumber,
         int pageSize,
         long totalItems,

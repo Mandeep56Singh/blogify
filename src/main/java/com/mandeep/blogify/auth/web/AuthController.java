@@ -6,6 +6,10 @@ import com.mandeep.blogify.auth.application.dto.response.UserLoginResponseDto;
 import com.mandeep.blogify.auth.application.service.AuthService;
 import com.mandeep.blogify.shared.dto.ResponseDto;
 import com.mandeep.blogify.shared.exceptions.validation.RequestValidator;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,14 +23,21 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/v1/auth/")
+@RequestMapping("/api/v1/auth")
 @Slf4j
+@Tag(name = "Authentication", description = "Endpoints for login and user registration")
 class AuthController {
 
     private final AuthService authService;
     private final RequestValidator validator;
 
-    @PostMapping(value = "/login")
+    @Operation(summary = "Login user", description = "Authenticate a user and return JWT token with user info")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User authenticated successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
+    @PostMapping("/login")
     public ResponseEntity<ResponseDto<UserLoginResponseDto>> loginUser(
             @RequestBody UserLoginRequestDto requestDto
     ) {
@@ -46,7 +57,13 @@ class AuthController {
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
-    @PostMapping(value = "/signup")
+    @Operation(summary = "Sign up user", description = "Register a new user and return JWT token with user info")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "User registered successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "409", description = "User with this email already exists")
+    })
+    @PostMapping("/signup")
     public ResponseEntity<ResponseDto<UserLoginResponseDto>> signUp(
             @RequestBody UserSignUpDto userDto
     ) {

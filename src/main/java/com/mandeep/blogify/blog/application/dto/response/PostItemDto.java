@@ -1,26 +1,18 @@
 package com.mandeep.blogify.blog.application.dto.response;
 
 import com.mandeep.blogify.shared.dto.AuthorView;
-import com.mandeep.blogify.shared.dto.ResponsePayload;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
-/**
- * Response payload for blog post information.
- */
-@Schema(name = "PostResponseDto", description = "Represents a blog post with author and categories")
-public record PostResponseDto(
-
+@Schema(name = "PostItemDto", description = "Represents a blog post item in Page of Posts")
+public record PostItemDto (
         @Schema(description = "Unique ID of the post", example = "1")
         Long id,
 
         @Schema(description = "Title of the blog post", example = "Understanding Microservices Architecture")
         String title,
-
-        @Schema(description = "Content of the blog post", example = "This is a detailed blog post about microservices...")
-        String content,
 
         @Schema(description = "Author of the post")
         AuthorView author,
@@ -30,5 +22,5 @@ public record PostResponseDto(
                 arraySchema = @Schema(description = "Categories array")
         )
         List<CategoryDto> categories
-
-) implements ResponsePayload {}
+) {
+}

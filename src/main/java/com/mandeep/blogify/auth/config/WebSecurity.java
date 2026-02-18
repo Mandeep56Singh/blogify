@@ -1,5 +1,6 @@
 package com.mandeep.blogify.auth.config;
 
+import com.mandeep.blogify.auth.application.AuthConstants;
 import com.mandeep.blogify.auth.application.service.JwtToUserConverter;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -8,6 +9,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -41,7 +43,8 @@ public class WebSecurity {
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers("/api/v1/auth/**").permitAll()
+                                .requestMatchers(AuthConstants.PUBLIC_APIS).permitAll()
+                                .requestMatchers(HttpMethod.GET, AuthConstants.PUBLIC_GET_APIS).permitAll()
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/**").authenticated()
 

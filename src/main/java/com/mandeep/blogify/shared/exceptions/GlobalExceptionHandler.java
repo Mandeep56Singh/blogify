@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -17,9 +18,17 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
+    // trying to access admin route
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ResponseDto<?>> handleAccessDeniedException(AccessDeniedException ex) {
+        CommonAppError error = CommonAppError.ACCESS_DENIED;
+        AppProblem problem = AppProblem.getDetail(error);
+        return new ResponseEntity<>(ResponseDto.failure(problem), error.status());
+    }
 
     // type mismatch exception handlers
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -63,7 +72,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
-    public ResponseEntity<Object> handleUsernameNotFoundException (Exception ex) {
+    public ResponseEntity<Object> handleUsernameNotFoundException(Exception ex) {
         AuthError error = AuthError.INVALID_CREDENTIALS;
         AppProblem problem = AppProblem.getDetail(error);
         return new ResponseEntity<>(ResponseDto.failure(problem), error.status());

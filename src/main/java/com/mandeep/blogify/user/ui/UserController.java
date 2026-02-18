@@ -9,11 +9,14 @@ import com.mandeep.blogify.shared.exceptions.validation.RequestValidator;
 import com.mandeep.blogify.user.application.UserService;
 import com.mandeep.blogify.user.application.dto.UserRequestDto;
 import com.mandeep.blogify.user.application.dto.UserResponseDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -23,13 +26,17 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
 @Slf4j
-@Validated
+@Tag(name = "Users", description = "User management APIs")
 class UserController {
 
     private final UserService userService;
     private final RequestValidator validator;
 
-
+    @Operation(summary = "Get user by ID", description = "Fetch a user by their unique ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<UserResponseDto>> getUserById(
             @PathVariable Long id
@@ -41,10 +48,15 @@ class UserController {
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
-
+    @Operation(summary = "Get user by email", description = "Fetch a user using their email address")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid email format"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @GetMapping(value = "/by-email")
     public ResponseEntity<ResponseDto<UserResponseDto>> getUserByEmail(
-            @RequestParam  String email
+            @RequestParam String email
     ) {
         Optional<ResponseDto<UserResponseDto>> violatedResponse = validator.validate(new EmailWrapper(email));
 
@@ -60,6 +72,12 @@ class UserController {
         return ResponseEntity.ok(responseDto);
     }
 
+    @Operation(summary = "Get paginated users",
+            description = "Retrieve a paginated list of users")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid pagination parameters")
+    })
     @GetMapping
     public ResponseEntity<ResponseDto<PaginatedResponseDto<UserResponseDto>>> getUsers(
             @RequestParam(value = "pageNumber", defaultValue = "1", required = false) Integer pageNumber,
@@ -76,7 +94,13 @@ class UserController {
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
-
+    @Operation(summary = "Update user",
+            description = "Update user details by user ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "User updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PostMapping(value = "{id}")
     public ResponseEntity<ResponseDto<UserResponseDto>> updateUser(
             @RequestBody UserRequestDto requestDto,
