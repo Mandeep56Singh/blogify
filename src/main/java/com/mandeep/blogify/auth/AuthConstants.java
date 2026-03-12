@@ -6,5 +6,5 @@ public final class AuthConstants {
         throw new UnsupportedOperationException("Invalid instantiation");
     }
 
-    public static String SECURITY_SCHEMA_NAME = "bearerAuth";
+    public static final String SECURITY_SCHEMA_NAME = "bearerAuth";
 }

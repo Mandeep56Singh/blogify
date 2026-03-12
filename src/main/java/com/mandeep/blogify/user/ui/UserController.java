@@ -1,122 +1,79 @@
 package com.mandeep.blogify.user.ui;
 
-import com.mandeep.blogify.shared.AppUtils;
-import com.mandeep.blogify.shared.dto.PaginatedResponseDto;
-import com.mandeep.blogify.shared.dto.ResponseDto;
-import com.mandeep.blogify.shared.exceptions.PageError;
-import com.mandeep.blogify.shared.exceptions.validation.EmailWrapper;
-import com.mandeep.blogify.shared.exceptions.validation.RequestValidator;
-import com.mandeep.blogify.user.application.UserService;
-import com.mandeep.blogify.user.application.dto.UserRequestDto;
-import com.mandeep.blogify.user.application.dto.UserResponseDto;
+import com.mandeep.blogify.shared.dto.Response;
+import com.mandeep.blogify.user.application.dto.UserResponse;
+import com.mandeep.blogify.user.application.query.UserQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.UUID;
 
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
-@Slf4j
+@Validated
+@RequiredArgsConstructor
 @Tag(name = "Users", description = "User management APIs")
 class UserController {
 
-    private final UserService userService;
-    private final RequestValidator validator;
+    private final UserQueryService userQueryService;
 
+
+    //region Queries By User
     @Operation(summary = "Get user by ID", description = "Fetch a user by their unique ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseDto<UserResponseDto>> getUserById(
-            @PathVariable Long id
+    public ResponseEntity<Response<UserResponse>> getUserById(
+            @PathVariable UUID id
     ) {
-        ResponseDto<UserResponseDto> responseDto = userService.getUserById(id);
-        if (!responseDto.success()) {
-            return new ResponseEntity<>(responseDto, responseDto.error().status());
-        }
+        UserResponse userResponse = userQueryService.getUserById(id);
+        var responseDto = Response.success(userResponse);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @Operation(summary = "Get user by email", description = "Fetch a user using their email address")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid email format"),
+            @ApiResponse(responseCode = "400", description = "Invalid value format"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @GetMapping(value = "/by-email")
-    public ResponseEntity<ResponseDto<UserResponseDto>> getUserByEmail(
-            @RequestParam String email
+    @GetMapping(value = "/email")
+    public ResponseEntity<Response<UserResponse>> getUserByEmail(
+            @NotBlank @Email @RequestParam String email
     ) {
-        Optional<ResponseDto<UserResponseDto>> violatedResponse = validator.validate(new EmailWrapper(email));
 
-        if (violatedResponse.isPresent()) {
-            return new ResponseEntity<>(violatedResponse.get(), violatedResponse.get().error().status());
-        }
-
-        ResponseDto<UserResponseDto> responseDto = userService.getUserByEmail(email);
-
-        if (!responseDto.success()) {
-            return new ResponseEntity<>(responseDto, responseDto.error().status());
-        }
+        UserResponse userResponse = userQueryService.getUserByEmail(email);
+        var responseDto = Response.success(userResponse);
         return ResponseEntity.ok(responseDto);
     }
 
-    @Operation(summary = "Get paginated users",
-            description = "Retrieve a paginated list of users")
+    @Operation(summary = "Get user by username", description = "Fetch a user using their username")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid pagination parameters")
-    })
-    @GetMapping
-    public ResponseEntity<ResponseDto<PaginatedResponseDto<UserResponseDto>>> getUsers(
-            @RequestParam(value = "pageNumber", defaultValue = "1", required = false) Integer pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "5", required = false) Integer pageSize
-    ) {
-        Optional<PageError> pageError = AppUtils.validatePage(pageNumber - 1, pageSize);
-
-        if (pageError.isPresent()) {
-            return new ResponseEntity<>(ResponseDto.failure(pageError.get()), pageError.get().status());
-        }
-
-        PaginatedResponseDto<UserResponseDto> pageDataDto = userService.getAll(pageNumber, pageSize);
-        ResponseDto<PaginatedResponseDto<UserResponseDto>> responseDto = ResponseDto.success(pageDataDto);
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
-    }
-
-    @Operation(summary = "Update user",
-            description = "Update user details by user ID")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "User updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid value format"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @PostMapping(value = "{id}")
-    public ResponseEntity<ResponseDto<UserResponseDto>> updateUser(
-            @RequestBody UserRequestDto requestDto,
-            @PathVariable Long id
+    @GetMapping(value = "/username")
+    public ResponseEntity<Response<UserResponse>> getUserByUserName(
+            @NotBlank @RequestParam String username
     ) {
-        Optional<ResponseDto<UserResponseDto>> violatedResponse = validator.validate(requestDto);
 
-        if (violatedResponse.isPresent()) {
-            return new ResponseEntity<>(violatedResponse.get(), violatedResponse.get().error().status());
-        }
-
-        ResponseDto<UserResponseDto> responseDto = userService.updateUser(requestDto, id);
-        if (!responseDto.success()) {
-            return new ResponseEntity<>(responseDto, responseDto.error().status());
-        }
+        UserResponse userResponse = userQueryService.getUserByUserName(username);
+        var responseDto = Response.success(userResponse);
         return ResponseEntity.ok(responseDto);
     }
+    //endregion
 
 }

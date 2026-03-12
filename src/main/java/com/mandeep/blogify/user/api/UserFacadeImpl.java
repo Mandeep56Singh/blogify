@@ -1,54 +1,73 @@
 package com.mandeep.blogify.user.api;
 
-import com.mandeep.blogify.shared.dto.AuthorView;
+import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.UserFacade;
 import com.mandeep.blogify.user.UserView;
-import com.mandeep.blogify.user.application.UserService;
-import com.mandeep.blogify.user.domain.User;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.mandeep.blogify.user.application.command.UserCommandService;
+import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
+import com.mandeep.blogify.user.application.dto.UserResponse;
+import com.mandeep.blogify.user.application.query.UserQueryRepository;
+import com.mandeep.blogify.user.domain.model.valueobjects.Email;
+import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserFacadeImpl implements UserFacade {
 
-    private final UserService userService;
+    private final UserCommandService userCommandService;
+    private final UserQueryRepository queryRepository;
     private final UserViewMapper viewMapper;
-    private final AuthorViewMapper authorViewMapper;
 
     @Override
-    public Optional<UserView> createUser(@NotNull @Email String email, @NotBlank String name, @NotBlank String password) {
-        return userService.
-                createUser(email, name, password)
-                .map(viewMapper::toView);
+    @Transactional
+    public void register(String email, String userName, String password, Role role) {
+        UserRegistrationRequest userRegistrationRequest = new UserRegistrationRequest(
+                email,
+                userName,
+                password,
+                role
+        );
+        userCommandService.register(userRegistrationRequest);
+    }
+
+
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return queryRepository.existsByEmail(new Email(email));
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UserView> getUserById(UUID id) {
+        return queryRepository.findResponseById(new UserId(id)).map(
+                viewMapper::toView
+        );
     }
 
     @Override
-    public Optional<UserView> getUserById(@NotNull Long id) {
-        return userService.getById(id).map(viewMapper::toView);
-    }
+    @Transactional(readOnly = true)
+    public Map<UUID, UserView> getUsersById(Set<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Map.of();
+        }
 
-    @Override
-    public Optional<UserView> getUserByEmail(String email) {
-        return userService.getByEmail(email).map(viewMapper::toView);
-    }
+        List<UserResponse> userResponses = queryRepository.findUsersById(ids);
 
-    @Override
-    public Optional<AuthorView> getPostAuthor(Long id) {
-        return userService.getById(id).map(authorViewMapper::toView);
-    }
-
-    @Override
-    public Map<Long, AuthorView> getAuthors(Set<Long> ids) {
-        List<User> users = userService.getAllIds(ids);
-        Map<Long, AuthorView> authorMap = new HashMap<>();
-        users.forEach(user -> authorMap.put(user.getId(), authorViewMapper.toView(user)));
-        return authorMap;
+        return userResponses.stream()
+                .map(viewMapper::toView)
+                .collect(Collectors.toMap(
+                        UserView::id,
+                        view -> view,
+                        (existing, replacement) -> existing
+                ));
     }
 
 }

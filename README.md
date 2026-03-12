@@ -1,4 +1,4 @@
-**Archtecture and why ?**
+**Architecture and why ?**
 After a lot of research for finding a good architecture, I come to use Modular monolith, 
 here's why
 - maintaining code

@@ -1,8 +1,8 @@
 package com.mandeep.blogify.auth.api;
 
 import com.mandeep.blogify.auth.AuthFacade;
-import com.mandeep.blogify.auth.AuthenticatedUserView;
-import com.mandeep.blogify.auth.domain.AuthUser;
+import com.mandeep.blogify.auth.AuthView;
+import com.mandeep.blogify.auth.infrastructure.security.AuthenticatedUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -13,17 +13,19 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthFacadeImpl implements AuthFacade {
 
-    private final AuthenticatedUserMapper authenticatedUserMapper;
 
     @Override
-    public Optional<AuthenticatedUserView> getAuthenticatedUser() {
+    public Optional<AuthView> getCurrentUserId() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth != null && auth.getPrincipal() instanceof AuthUser authUser) {
-            return Optional.of(authenticatedUserMapper.toUser(authUser));
+        if (auth == null || !auth.isAuthenticated()) {
+            return Optional.empty();
+        }
+
+        if (auth.getPrincipal() instanceof AuthenticatedUserDetails details) {
+            return Optional.of(new AuthView(details.id()));
         }
 
         return Optional.empty();
-
     }
 }

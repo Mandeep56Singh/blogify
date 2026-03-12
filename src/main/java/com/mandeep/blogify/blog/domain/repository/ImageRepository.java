@@ -1,9 +1,7 @@
 package com.mandeep.blogify.blog.domain.repository;
 
-import com.mandeep.blogify.blog.domain.entity.Image;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import com.mandeep.blogify.blog.domain.model.entity.Image;
 
-@Repository
-public interface ImageRepository extends JpaRepository<Image, String> {
+public interface ImageRepository {
+    void save(Image image);
 }

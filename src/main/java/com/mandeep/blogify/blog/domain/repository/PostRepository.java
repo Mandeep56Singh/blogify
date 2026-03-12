@@ -1,13 +1,13 @@
 package com.mandeep.blogify.blog.domain.repository;
 
-import com.mandeep.blogify.blog.domain.entity.Post;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import com.mandeep.blogify.blog.domain.model.entity.Post;
+import com.mandeep.blogify.blog.domain.model.valueObject.PostId;
 
-@Repository
-public interface PostRepository extends JpaRepository<Post, Long> {
-    boolean existsByTitle(String title);
-    Page<Post> findByIsDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
+import java.util.Optional;
+import java.util.Set;
+
+public interface PostRepository {
+    void save(Post post);
+    Set<String> findSlugsByPrefix(String slugPrefix);
+    Optional<Post> findById(PostId postId);
 }

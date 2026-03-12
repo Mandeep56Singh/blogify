@@ -1,14 +1,16 @@
 package com.mandeep.blogify.blog.domain.repository;
 
-import com.mandeep.blogify.blog.domain.entity.Category;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import com.mandeep.blogify.blog.domain.model.entity.Category;
+import com.mandeep.blogify.blog.domain.model.valueObject.CategoryId;
+import com.mandeep.blogify.blog.domain.model.valueObject.CategoryTitle;
 
 import java.util.Optional;
+import java.util.Set;
 
-@Repository
-public interface CategoryRepository extends JpaRepository<Category, Long> {
-    Boolean existsByTitle(String title);
-
-    Optional<Category> findByTitle(String title);
+public interface CategoryRepository {
+    void save(Category category);
+    void update(Category category);
+    Set<CategoryId> findExistingIds(Set<CategoryId> categoryIds);
+    boolean existsByTitle(CategoryTitle categoryTitle);
+    Optional<Category> findById(CategoryId id);
 }
