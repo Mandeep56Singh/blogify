@@ -8,20 +8,27 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: 123
-    url: jdbc:postgresql://localhost:5430/db
+
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
         use_sql_comments: true
 
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
   servlet:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+
+
 rsa:
   private-key: classpath:certs/private_key.pem
   public-key: classpath:certs/public_key.pem

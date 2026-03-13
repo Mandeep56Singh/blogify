@@ -1,6 +1,7 @@
 package com.mandeep.blogify.user.infrastructure.persistence.entity;
 
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
+import com.mandeep.blogify.shared.infrastructure.persistence.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,17 +9,12 @@ import lombok.Setter;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.UUID;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
-public class UserEntity {
-
-    @Id
-    @Column(name = "id", nullable = false, updatable = false)
-    private UUID id;
+public class UserEntity extends BaseEntity {
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
@@ -35,15 +31,6 @@ public class UserEntity {
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
-
-    @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
-
-    @Column(name = "last_modified_at")
-    private Instant lastModifiedAt;
-
-    @Version
-    private Long version;
 
     @PreUpdate
     public void beforeUpdate() {
@@ -64,14 +51,14 @@ public class UserEntity {
     @Override
     public String toString() {
         return "UserEntity{" +
-                "id=" + id +
+                "id=" + getId() +
                 ", email='" + email + '\'' +
                 ", userName='" + userName + '\'' +
                 ", isActive=" + isActive +
                 ", role='" + role + '\'' +
-                ", createdAt=" + createdAt +
-                ", lastModifiedAt=" + lastModifiedAt +
-                ", version=" + version +
+                ", createdAt=" + getCreatedAt() +
+                ", lastModifiedAt=" + getLastModifiedAt() +
+                ", version=" + getVersion() +
                 '}';
     }
 }

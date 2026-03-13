@@ -19,7 +19,6 @@ public class UserEntityMapper {
         userEntity.setPassword(user.getPassword());
         userEntity.setRole(user.getRole());
         userEntity.setActive(user.isActive());
-        userEntity.setCreatedAt(user.getCreatedAt());
         return userEntity;
     }
 

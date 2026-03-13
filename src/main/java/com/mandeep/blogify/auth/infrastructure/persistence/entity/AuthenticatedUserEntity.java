@@ -4,14 +4,16 @@ import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Immutable;
 
 import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Immutable // remove it when creating account lock feature
+@Table(name = "auth_credentials")
 @Getter
-@Setter
+@Setter //`@Setter` for Hibernate to hydrate the object when reading
 public class AuthenticatedUserEntity {
     @Id
     @Column(name = "id", nullable = false, updatable = false)

@@ -16,7 +16,7 @@ public record Password(String value) {
             throw AuthDomainException.passwordTooShort();
         }
 
-        String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,16}$";
+        String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,72}$";
 
         if (!Pattern.matches(passwordRegex, value.strip())) {
             throw AuthDomainException.weakPassword();

@@ -1,4 +1,6 @@
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5430/blogify_dev
   jpa:
     show-sql: true
     properties:
