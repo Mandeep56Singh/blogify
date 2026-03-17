@@ -37,10 +37,16 @@ public class UserFacadeImpl implements UserFacade {
     }
 
 
-
     @Override
     public boolean existsByEmail(String email) {
         return queryRepository.existsByEmail(new Email(email));
+    }
+
+    @Override
+    public Optional<UserView> getByEmail(String email) {
+        return queryRepository.findResponseByEmail(new Email(email)).map(
+                viewMapper::toView
+        );
     }
 
 

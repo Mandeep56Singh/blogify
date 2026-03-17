@@ -12,6 +12,15 @@ public class UserDomainException extends DomainException {
     }
 
 
+    //region User Id
+    public static UserDomainException userIdRequired() {
+        return new UserDomainException(
+                UserDomainError.USER_ID_REQUIRED,
+                UserDomainError.USER_ID_REQUIRED.detail()
+        );
+    }
+    //endregion
+
     //region Email Exceptions
     public static UserDomainException invalidEmail() {
         return new UserDomainException(
@@ -27,14 +36,14 @@ public class UserDomainException extends DomainException {
     public static UserDomainException emailAlreadyExists(Email email) {
         return new UserDomainException(
                 UserDomainError.EMAIL_ALREADY_EXISTS,
-                "'"+ email.value() +"' already exists!, Please provide different email"
+                "'" + email.value() + "' already exists!, Please provide different email"
         );
     }
 
     public static UserDomainException emailNotFound(Email email) {
         return new UserDomainException(
                 UserDomainError.EMAIL_NOT_FOUND,
-                "User with email '"+ email.value() +"' not found"
+                "User with email '" + email.value() + "' not found"
         );
     }
     //endregion
@@ -50,7 +59,7 @@ public class UserDomainException extends DomainException {
     public static UserDomainException usernameInvalidLength(int min, int max) {
         return new UserDomainException(
                 UserDomainError.USERNAME_INVALID_LENGTH,
-                "Name must be between " + min + " and " + max + "characters");
+                "Name must be between " + min + " and " + max + " characters");
     }
 
     public static UserDomainException usernameInvalid() {
@@ -63,14 +72,14 @@ public class UserDomainException extends DomainException {
     public static UserDomainException usernameAlreadyExists(UserName userName) {
         return new UserDomainException(
                 UserDomainError.USERNAME_ALREADY_EXISTS,
-                "'"+ userName.value() +"' already exists!, Please provide different username"
+                "'" + userName.value() + "' already exists!, Please provide different username"
         );
     }
 
     public static UserDomainException usernameNotFound(UserName name) {
         return new UserDomainException(
                 UserDomainError.USERNAME_NOT_FOUND,
-                "User with user name '"+ name.value() +"' not found"
+                "User with user name '" + name.value() + "' not found"
         );
     }
     //endregion

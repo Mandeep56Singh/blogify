@@ -49,14 +49,22 @@ public enum CategoryError implements DomainError {
     }
 
     @Override
-    public DomainErrorType errorType() { return errorType; }
+    public DomainErrorType errorType() {
+        return errorType;
+    }
 
     @Override
-    public String title() { return title; }
+    public String title() {
+        return title;
+    }
 
     @Override
-    public String detail() { return detail; }
+    public String detail() {
+        return detail;
+    }
 
     @Override
-    public String errorCode() { return errorCode; }
+    public String errorCode() {
+        return errorCode;
+    }
 }

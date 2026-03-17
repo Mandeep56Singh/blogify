@@ -10,6 +10,7 @@ public enum PostStatus {
     public boolean isPublished() {
         return this == PUBLISHED;
     }
+
     public boolean isArchived() {
         return this == ARCHIVED;
     }

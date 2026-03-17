@@ -20,6 +20,7 @@ public class UserEntityMapper {
         userEntity.setRole(user.getRole());
         userEntity.setActive(user.isActive());
         return userEntity;
+
     }
 
     // DB -> Domain

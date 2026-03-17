@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-public record PostData (
+public record PostData(
         UUID postId,
         String title,
         String slug,
@@ -15,5 +15,5 @@ public record PostData (
         Instant createdAt,
         Instant publishedAt,
         Instant lastModifiedAt
-){
+) {
 }

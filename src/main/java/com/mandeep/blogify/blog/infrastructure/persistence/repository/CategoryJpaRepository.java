@@ -18,6 +18,14 @@ public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, UUI
 
     boolean existsByTitle(String title);
 
+    @Query("""
+                   SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
+                   FROM CategoryEntity c
+                   WHERE c.title = :title
+                   AND c.status = 'ACTIVE'
+            """)
+    boolean isCategoryExistsAndActive(@Param("title") String title);
+
     @Query("select c.id from CategoryEntity c where c.id in :ids")
     Set<UUID> findExistingIds(@Param("ids") Set<UUID> ids);
 

@@ -6,6 +6,13 @@ import com.mandeep.blogify.shared.domain.exception.enums.DomainErrorType;
 public enum UserDomainError implements DomainError {
 
 
+    USER_ID_REQUIRED(
+            "User Id is required",
+            "Please, make sure user has id",
+            DomainErrorType.INVALID_INPUT,
+            "USER_ID_REQUIRED"
+    ),
+
     //region Email Errors
     INVALID_EMAIL(
             "Email is invalid",
@@ -34,10 +41,8 @@ public enum UserDomainError implements DomainError {
     //endregion
 
 
-
-
     //region UserName Errors
-    USERNAME_REQUIRED (
+    USERNAME_REQUIRED(
             "Username is required",
             "Please, Provide Username",
             DomainErrorType.INVALID_INPUT,

@@ -1,6 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5430/blogify_dev
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
   jpa:
     show-sql: true
     properties:
@@ -19,3 +21,9 @@ logging:
 
   pattern:
     level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}]"
+
+seed:
+  user_count: 1000
+  post_count: 1000
+  category_count: 100
+

@@ -31,7 +31,7 @@ public class AuthenticatedUser {
     }
 
     public static AuthenticatedUser load(
-            AuthUserId authUserId,String userName, Email email, HashedPassword hashedPassword, Role role, boolean active
+            AuthUserId authUserId, String userName, Email email, HashedPassword hashedPassword, Role role, boolean active
     ) {
         return new AuthenticatedUser(authUserId, userName, email, hashedPassword, role, active);
     }

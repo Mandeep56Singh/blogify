@@ -43,8 +43,8 @@ public class CategoryException extends DomainException {
         return new CategoryException(
                 CategoryError.CATEGORY_ALREADY_EXISTS,
                 "Cannot Create Category, Category with title "
-                + title.value()
-                + " already exists."
+                        + title.value()
+                        + " already exists."
         );
     }
 }

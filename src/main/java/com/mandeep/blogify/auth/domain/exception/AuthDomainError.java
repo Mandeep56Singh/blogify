@@ -21,23 +21,23 @@ public enum AuthDomainError implements DomainError {
     //region Password Errors
     PASSWORD_REQUIRED(
             "Password is required",
-                    "Please, provide value",
+            "Please, provide value",
             DomainErrorType.INVALID_INPUT,
             "PASSWORD_REQUIRED"
     ),
     PASSWORD_TOO_SHORT(
             "Password is not valid",
-                    "Password must be at-least 8 character long",
+            "Password must be at-least 8 character long",
             DomainErrorType.INVALID_INPUT,
             "PASSWORD_TOO_SHORT"
     ),
     WEAK_PASSWORD(
             "Password is weak",
-                    "Password must contain uppercase, lowercase, numbers, and symbols",
+            "Password must contain uppercase, lowercase, numbers, and symbols",
             DomainErrorType.INVALID_INPUT,
             "WEAK_PASSWORD"
     ),
-        //endregion
+    //endregion
 
     ;
 

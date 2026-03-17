@@ -11,7 +11,7 @@ public class AppUtils {
         if (pageSize <= 0 || pageSize > AppConstants.MAX_PAGE_SIZE) throw PageException.invalidPageSize();
     }
 
-    public  static HttpStatus resolveStatus(DomainErrorType errorType) {
+    public static HttpStatus resolveStatus(DomainErrorType errorType) {
         return switch (errorType) {
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
             case CONFLICT -> HttpStatus.CONFLICT;

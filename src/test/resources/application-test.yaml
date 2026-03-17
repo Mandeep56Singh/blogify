@@ -1,6 +1,6 @@
 spring:
   datasource:
-      url: jdbc:postgresql://localhost:5430/blogify_test
+    url: jdbc:postgresql://localhost:5430/blogify_test
   jpa:
     hibernate:
       ddl-auto: create-drop

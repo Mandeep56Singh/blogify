@@ -6,6 +6,7 @@ import lombok.Getter;
 public class DomainException extends RuntimeException {
 
     private final DomainError error;
+
     public DomainException(DomainError error, String message) {
         super(message);
         this.error = error;

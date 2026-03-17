@@ -101,7 +101,7 @@ class PostController {
                 AccountException::accountNotAuthenticated
         );
 
-        UUID id  = commandService.createPost(postMapper.toRequest(webRequest, currentUserId));
+        UUID id = commandService.createPost(postMapper.toRequest(webRequest, currentUserId));
         PostResponse postResponse = queryService.getPostById(id);
 
         return new ResponseEntity<>(Response.success(postResponse), HttpStatus.CREATED);

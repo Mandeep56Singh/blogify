@@ -45,7 +45,7 @@ public class Category {
             CategoryTitle title,
             CategoryDescription description,
             CategoryStatus status
-            ) {
+    ) {
         return new Category(categoryId, title, description, status);
     }
 

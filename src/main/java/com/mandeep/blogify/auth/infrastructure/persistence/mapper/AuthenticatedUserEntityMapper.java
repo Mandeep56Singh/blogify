@@ -21,7 +21,7 @@ public class AuthenticatedUserEntityMapper {
 
         return userEntity;
     }
-    
+
     public AuthenticatedUser toDomain(AuthenticatedUserEntity userEntity) {
         return AuthenticatedUser.load(
                 new AuthUserId(userEntity.getId()),

@@ -10,7 +10,7 @@ public enum CategoryStatus {
     }
 
     public boolean isArchived() {
-        return  this == ARCHIVED;
+        return this == ARCHIVED;
     }
 
 }

@@ -9,7 +9,12 @@ import java.util.UUID;
 
 public interface UserFacade {
     void register(String email, String userName, String password, Role role);
+
     boolean existsByEmail(String email);
+
+    Optional<UserView> getByEmail(String email);
+
     Optional<UserView> getUserById(UUID id);
+
     Map<UUID, UserView> getUsersById(Set<UUID> ids);
 }

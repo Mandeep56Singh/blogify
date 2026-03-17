@@ -12,5 +12,5 @@ public record PostCategories(Set<CategoryId> value) {
         }
 
         value = Set.copyOf(value);
-     }
+    }
 }

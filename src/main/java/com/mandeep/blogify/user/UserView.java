@@ -23,4 +23,5 @@ public record UserView(
         @Schema(description = "Role of the user", example = "USER")
         Role role
 
-) {}
+) {
+}

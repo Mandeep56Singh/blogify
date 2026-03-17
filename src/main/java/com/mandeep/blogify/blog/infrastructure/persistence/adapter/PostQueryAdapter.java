@@ -74,4 +74,9 @@ public class PostQueryAdapter implements PostQueryRepository {
                 postIdPage.isLast()
         );
     }
+
+    @Override
+    public boolean existsBySlug(String slug) {
+        return jpaRepository.existsBySlug(slug);
+    }
 }

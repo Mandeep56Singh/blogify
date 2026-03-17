@@ -7,22 +7,17 @@ import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import com.mandeep.blogify.user.domain.repository.UserRepository;
 import com.mandeep.blogify.user.infrastructure.persistence.mapper.UserEntityMapper;
 import com.mandeep.blogify.user.infrastructure.persistence.repository.UserJpaRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor
 public class UserCommandAdaptor implements UserRepository {
 
     private final UserJpaRepository userJpaRepository;
     private final UserEntityMapper userEntityMapper;
-
-
-    public UserCommandAdaptor(UserJpaRepository userJpaRepository, UserEntityMapper userEntityMapper) {
-        this.userJpaRepository = userJpaRepository;
-        this.userEntityMapper = userEntityMapper;
-    }
-
 
     @Override
     public void save(User user) {

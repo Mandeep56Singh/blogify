@@ -2,6 +2,7 @@ package com.mandeep.blogify.blog.infrastructure.persistence.adapter;
 
 import com.mandeep.blogify.blog.application.dto.CategoryResponse;
 import com.mandeep.blogify.blog.application.query.repository.CategoryQueryRepository;
+import com.mandeep.blogify.blog.domain.model.valueObject.CategoryTitle;
 import com.mandeep.blogify.blog.infrastructure.persistence.repository.CategoryJpaRepository;
 import com.mandeep.blogify.shared.dto.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
@@ -43,4 +44,11 @@ public class CategoryQueryAdapter implements CategoryQueryRepository {
                 page.isLast()
         );
     }
+
+    @Override
+    public boolean isCategoryExistsAndActive(CategoryTitle title) {
+        return jpaRepository.isCategoryExistsAndActive(title.value());
+    }
+
+
 }

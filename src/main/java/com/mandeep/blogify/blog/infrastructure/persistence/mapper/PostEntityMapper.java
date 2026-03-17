@@ -42,6 +42,7 @@ public class PostEntityMapper {
         entity.getCategories().clear();
         entity.setCategories(categories);
     }
+
     public PostData toPostData(PostEntity postEntity) {
 
         Set<CategoryResponse> categories = postEntity.getCategories().stream().map(

@@ -10,7 +10,7 @@ public record PostContent(
 
     public PostContent {
 
-        if (value == null || value.isBlank() ) {
+        if (value == null || value.isBlank()) {
             throw PostException.postContentNullOrEmpty();
         }
 

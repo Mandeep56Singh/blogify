@@ -6,8 +6,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Clock;
-import java.time.Instant;
 import java.util.Objects;
 
 @Entity
@@ -32,20 +30,16 @@ public class UserEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @PreUpdate
-    public void beforeUpdate() {
-        this.lastModifiedAt = Instant.now(Clock.systemUTC());
-    }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof UserEntity that)) return false;
-        return Objects.equals(id, that.id);
+        return Objects.equals(getId(), that.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return Objects.hashCode(getId());
     }
 
     @Override

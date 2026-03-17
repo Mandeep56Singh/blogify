@@ -9,8 +9,12 @@ import java.util.Set;
 
 public interface CategoryRepository {
     void save(Category category);
+
     void update(Category category);
+
     Set<CategoryId> findExistingIds(Set<CategoryId> categoryIds);
+
     boolean existsByTitle(CategoryTitle categoryTitle);
+
     Optional<Category> findById(CategoryId id);
 }

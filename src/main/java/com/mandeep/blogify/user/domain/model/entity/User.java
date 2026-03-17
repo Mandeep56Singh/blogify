@@ -14,11 +14,11 @@ import java.util.Objects;
 public class User {
 
     private final UserId userId;
-    private Email email;
-    private UserName userName;
+    private final Email email;
+    private final UserName userName;
     private final String password;
     private final Role role;
-    private boolean active;
+    private final boolean active;
     private final Instant createdAt;
 
 
@@ -47,7 +47,8 @@ public class User {
             UserName userName,
             Email email,
             String password,
-            Role role
+            Role role,
+            Clock clock
     ) {
         return new User(
                 id,
@@ -56,7 +57,7 @@ public class User {
                 password,
                 true,
                 role,
-                Instant.now(Clock.systemUTC())
+                Instant.now(clock)
         );
     }
 
@@ -73,29 +74,6 @@ public class User {
         return new User(userId, userName, email, password, active, role, createdAt);
     }
     //endregion
-
-
-    public void updateName(UserName name) {
-        this.userName = name;
-    }
-
-    public void updateEmail(Email email) {
-        this.email = email;
-    }
-
-    public void deActive() {
-
-        if (!this.active) {
-            return;
-        }
-
-        this.active = false;
-    }
-
-
-    public String getDisplayName() {
-        return active ? userName.value() : "Deactivated User";
-    }
 
     public boolean isAdmin() {
         return role == Role.ADMIN;

@@ -8,6 +8,8 @@ import java.util.Set;
 
 public interface PostRepository {
     void save(Post post);
+
     Set<String> findSlugsByPrefix(String slugPrefix);
+
     Optional<Post> findById(PostId postId);
 }

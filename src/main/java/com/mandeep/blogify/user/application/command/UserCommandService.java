@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.time.Clock;
 
 
 @Service
@@ -22,6 +22,7 @@ public class UserCommandService {
 
     private final UserRepository userRepository;
     private final UserIdentityGenerator userIdentityGenerator;
+    private final Clock clock;
 
 
     @Transactional
@@ -49,39 +50,11 @@ public class UserCommandService {
                 name,
                 email,
                 password,
-                userRegistrationRequest.role()
+                userRegistrationRequest.role(),
+                this.clock
         );
         userRepository.save(user);
 
-    }
-
-    @Transactional
-    public void updateUserName(UUID id, String name) {
-
-        UserId userId = new UserId(id);
-
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> UserDomainException.userNotFound(userId)
-        );
-
-        user.updateName(new UserName(name));
-
-        userRepository.save(user);
-
-    }
-
-    @Transactional
-    public void updateEmail(UUID id, String email) {
-
-        UserId userId = new UserId(id);
-
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> UserDomainException.userNotFound(userId)
-        );
-
-        user.updateEmail(new Email(email));
-
-        userRepository.save(user);
     }
 
 }

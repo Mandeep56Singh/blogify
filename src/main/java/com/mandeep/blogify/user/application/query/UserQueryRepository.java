@@ -12,9 +12,13 @@ import java.util.UUID;
 
 public interface UserQueryRepository {
     Optional<UserResponse> findResponseById(UserId userId);
+
     Optional<UserResponse> findResponseByEmail(Email email);
+
     Optional<UserResponse> findResponseByUserName(UserName name);
+
     List<UserResponse> findUsersById(Set<UUID> ids);
+
     boolean existsByEmail(Email email);
 
 }

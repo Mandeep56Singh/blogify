@@ -32,8 +32,8 @@ public class PostException extends DomainException {
         return new PostException(
                 PostError.POST_NOT_FOUND,
                 "Post with id "
-                + postId.value()
-                + " not found"
+                        + postId.value()
+                        + " not found"
         );
     }
     //endregion
@@ -65,7 +65,7 @@ public class PostException extends DomainException {
     public static PostException postCategoryNotFound(CategoryId id) {
         return new PostException(
                 PostError.CATEGORY_NOT_FOUND,
-                "Category with id "+ id.value() +" not found, Please provide valid category"
+                "Category with id " + id.value() + " not found, Please provide valid category"
         );
     }
 

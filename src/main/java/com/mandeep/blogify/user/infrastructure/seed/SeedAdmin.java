@@ -11,14 +11,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 @Profile("dev")
 @RequiredArgsConstructor
+@Order(1)
 @Slf4j
-public final class AdminSeeder implements ApplicationRunner {
+public final class SeedAdmin implements ApplicationRunner {
 
     private final UserCommandService commandService;
     private final UserQueryRepository queryRepository;
@@ -40,18 +42,21 @@ public final class AdminSeeder implements ApplicationRunner {
         log.debug("admin.signup.attempt email={}", email);
 
         if (queryRepository.existsByEmail(new Email(email))) {
-            log.info("admin.signup.failed reason='ADMIN ALREADY SIGNED UP, SKIPPING CREATING ADMIN' email={}", email);
+            log.info("admin.signup.skipped reason='ADMIN ALREADY SIGNED UP, SKIPPING CREATING ADMIN' email={}", email);
             return;
         }
 
         String hashedPassword = passwordEncoder.encode(password);
 
-        commandService.register(new UserRegistrationRequest(
-                email,
-                userName,
-                hashedPassword,
-                Role.ADMIN
-        ));
+        try {
+            commandService.register(new UserRegistrationRequest(
+                    email, userName, hashedPassword, Role.ADMIN
+            ));
+            log.info("admin.signup.success email={}", email);
+        } catch (Exception ex) {
+            log.warn("admin.signup.failed reason={}", ex.getMessage());
+        }
+
 
         log.info("admin.signup.success email={}", email);
     }

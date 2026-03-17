@@ -18,7 +18,8 @@ import java.util.UUID;
 @Repository
 public interface PostJpaRepository extends JpaRepository<PostEntity, UUID> {
 
-    boolean existsByTitle(String title);
+    boolean existsBySlug(String slug);
+
 
     @Query("SELECT p.slug FROM PostEntity p WHERE p.slug LIKE :pattern")
     Set<String> findSlugsByPrefix(@Param("pattern") String pattern);

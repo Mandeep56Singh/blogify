@@ -14,4 +14,5 @@ public record SignUpWebRequest(
         @NotBlank
         @Size(min = 8, max = 16)
         String password
-) {}
+) {
+}

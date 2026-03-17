@@ -48,13 +48,13 @@ public class CategoryCommandAdapter implements CategoryRepository {
 
     @Override
     public Set<CategoryId> findExistingIds(Set<CategoryId> categoryIds) {
-         Set<UUID> ids =  categoryJpaRepository.findExistingIds(
-                 categoryIds.stream()
-                         .map(CategoryId::value)
-                         .collect(Collectors.toSet())
-         );
+        Set<UUID> ids = categoryJpaRepository.findExistingIds(
+                categoryIds.stream()
+                        .map(CategoryId::value)
+                        .collect(Collectors.toSet())
+        );
 
-         return ids.stream().map(CategoryId::new).collect(Collectors.toSet());
+        return ids.stream().map(CategoryId::new).collect(Collectors.toSet());
     }
 
     @Override

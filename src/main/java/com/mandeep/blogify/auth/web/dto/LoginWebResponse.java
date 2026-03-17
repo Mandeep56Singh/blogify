@@ -7,5 +7,5 @@ public record LoginWebResponse(
         String tokenType,
         Long expiresIn,
         AuthUserResponse user
-){
+) {
 }

@@ -1,14 +1,14 @@
 CREATE TABLE users
 (
-    id UUID NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    user_name VARCHAR(100) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    role VARCHAR(20) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
+    id               UUID         NOT NULL,
+    email            VARCHAR(255) NOT NULL,
+    user_name        VARCHAR(100) NOT NULL,
+    password         VARCHAR(255) NOT NULL,
+    is_active        BOOLEAN      NOT NULL DEFAULT TRUE,
+    role             VARCHAR(20)  NOT NULL,
+    created_at       TIMESTAMPTZ  NOT NULL,
     last_modified_at TIMESTAMPTZ,
-    version BIGINT NOT NULL DEFAULT 0,
+    version          BIGINT       NOT NULL DEFAULT 0,
 
 
     CONSTRAINT pk_users PRIMARY KEY (id),

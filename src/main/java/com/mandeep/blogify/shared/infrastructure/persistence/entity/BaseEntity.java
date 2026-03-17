@@ -10,11 +10,11 @@ import java.util.UUID;
 
 @MappedSuperclass
 @Getter
+@Setter
 public abstract class BaseEntity {
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
-    @Setter
     protected UUID id;
 
     @Column(name = "created_at", nullable = false, updatable = false)

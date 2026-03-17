@@ -6,6 +6,8 @@ import com.mandeep.blogify.blog.domain.model.valueObject.PostId;
 
 public interface BlogIdGenerator {
     PostId nextPostId();
+
     CategoryId nextCategoryId();
+
     ImageId nextImageId();
 }

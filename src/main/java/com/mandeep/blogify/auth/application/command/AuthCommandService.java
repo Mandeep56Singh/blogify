@@ -40,25 +40,8 @@ public class AuthCommandService {
         log.info("signup.success email='{}' userName='{}'",
                 signUpRequest.email(),
                 signUpRequest.userName());
-        
+
         return login(new LoginRequest(email, signUpRequest.password()));
-    }
-
-    @Transactional
-    public void signUpAdmin(SignUpRequest signUpRequest) {
-        log.debug("admin.signup.attempt email='{}' userName='{}'",
-                signUpRequest.email(),
-                signUpRequest.userName());
-
-        String email = signUpRequest.email();
-        String userName = signUpRequest.userName();
-        HashedPassword hashedPassword = hashPassword(signUpRequest.password());
-
-        userFacade.register(email, userName, hashedPassword.value(), Role.ADMIN);
-        log.info("admin.signup.success email='{}' userName='{}'",
-                signUpRequest.email(),
-                signUpRequest.userName());
-
     }
 
     @Transactional

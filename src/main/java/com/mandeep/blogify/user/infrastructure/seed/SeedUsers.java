@@ -5,13 +5,13 @@ import com.mandeep.blogify.user.application.command.UserCommandService;
 import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
 import com.mandeep.blogify.user.application.query.UserQueryRepository;
 import com.mandeep.blogify.user.domain.model.valueobjects.Email;
-import com.mandeep.blogify.user.infrastructure.persistence.repository.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -19,21 +19,17 @@ import org.springframework.stereotype.Component;
 @Profile("dev")
 @RequiredArgsConstructor
 @Slf4j
-public final class UserSeeder implements ApplicationRunner {
+@Order(2)
+public final class SeedUsers implements ApplicationRunner {
 
     private final UserCommandService userCommandService;
     private final UserQueryRepository queryRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserJpaRepository jpaRepository;
 
 
-//    constant variable
+    //    constant variable
     @Value("${seed.user_count:10}")
     private int userCount;
-
-    private final String password = "Blogify@1234";
-    private final String userNamePrefix = "user";
-    private final String emailSuffix = "@seed.blogify.com";
 
 
     @Override
@@ -46,15 +42,21 @@ public final class UserSeeder implements ApplicationRunner {
         log.info("Seeding {} users....", userCount);
 
 
+        String password = "Blogify@1234";
         String hashedPassword = passwordEncoder.encode(password);
 
         for (int i = 1; i <= userCount; i++) {
+            String userNamePrefix = "user";
+            String emailSuffix = "@seed.blogify.com";
             String email = userNamePrefix + i + emailSuffix;
             String userName = userNamePrefix + i;
-
-            userCommandService.register(new UserRegistrationRequest(
-                email, userName, hashedPassword, Role.USER
-            ));
+            try {
+                userCommandService.register(new UserRegistrationRequest(
+                        email, userName, hashedPassword, Role.USER
+                ));
+            } catch (Exception e) {
+                log.warn("users.seed.item.failed index={} reason='{}'", i, e.getMessage());
+            }
         }
 
         log.info("Seeding {} users successful.", userCount);
