@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -54,5 +55,55 @@ public class UserEntity extends BaseEntity {
                 ", lastModifiedAt=" + getLastModifiedAt() +
                 ", version=" + getVersion() +
                 '}';
+    }
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final UserEntity user;
+
+        public Builder() {
+            this.user = new UserEntity();
+        }
+
+        public Builder id(UUID id) {
+            user.setId(id);
+            return this;
+        }
+
+        public Builder email(String email) {
+            user.setEmail(email);
+            return this;
+        }
+
+        public Builder userName(String userName) {
+            user.setUserName(userName);
+            return this;
+        }
+
+        public Builder password(String password) {
+            user.setPassword(password);
+            return this;
+        }
+
+        public Builder isActive(boolean isActive) {
+            user.setActive(isActive);
+            return this;
+        }
+
+        public Builder role(Role role) {
+            user.setRole(role);
+            return this;
+        }
+
+        public UserEntity build() {
+            if (user.email == null || user.userName == null || user.password == null || user.role == null) {
+                throw new IllegalStateException("Required fields are missing");
+            }
+            return user;
+        }
+
     }
 }

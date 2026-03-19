@@ -12,8 +12,4 @@ class ModuleStructureTest {
         modules.verify();
     }
 
-    @Test
-    void printModuleStructure() {
-        modules.forEach(System.out::println);
-    }
 }

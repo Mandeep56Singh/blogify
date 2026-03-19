@@ -1,18 +1,13 @@
-package com.mandeep.blogify;
+package com.mandeep.blogify.integrationTest.base;
 
 import com.mandeep.blogify.integrationTest.config.TestContainersConfig;
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @Import(TestContainersConfig.class)
-class BlogifyApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
+@ActiveProfiles("test")
+public abstract class BaseIntegrationTest {
 
 }

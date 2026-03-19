@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("User Command Service")
-class UserCommandServiceTest {
+class UserCommandServiceUnitTest {
 
     //region Test Data (Constants remain at the top)
     private static final UUID ID = UUID.fromString("019ce66a-7a58-7ebd-b78c-ac88bd154378");
