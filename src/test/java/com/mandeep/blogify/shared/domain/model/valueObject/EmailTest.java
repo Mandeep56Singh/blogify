@@ -1,7 +1,7 @@
-package com.mandeep.blogify.user.domain.model.valueobjects;
+package com.mandeep.blogify.shared.domain.model.valueObject;
 
-import com.mandeep.blogify.user.domain.exceptions.UserDomainError;
-import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
+import com.mandeep.blogify.shared.domain.exception.CommonException;
+import com.mandeep.blogify.shared.domain.exception.enums.CommonError;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -13,9 +13,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
-@DisplayName("Email Value Object")
 class EmailTest {
-
     @Nested
     @DisplayName("Constructor")
     class Constructor {
@@ -25,13 +23,13 @@ class EmailTest {
         @ValueSource(strings = {"   ", "\t", "\n"})
         void should_ThrowException_When_EmailIsMissing(String raw) {
             // Act
-            UserDomainException ex = catchThrowableOfType(
-                    UserDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> new Email(raw)
             );
 
             // Assert
-            assertThat(ex.getError()).isEqualTo(UserDomainError.EMAIL_REQUIRED);
+            assertThat(ex.getError()).isEqualTo(CommonError.EMAIL_REQUIRED);
         }
 
         @ParameterizedTest(name = "rejects invalid format: ''{0}''")
@@ -48,13 +46,13 @@ class EmailTest {
         })
         void should_ThrowException_When_FormatIsInvalid(String raw) {
             // Act
-            UserDomainException ex = catchThrowableOfType(
-                    UserDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> new Email(raw)
             );
 
             // Assert
-            assertThat(ex.getError()).isEqualTo(UserDomainError.INVALID_EMAIL);
+            assertThat(ex.getError()).isEqualTo(CommonError.INVALID_EMAIL);
         }
 
         @ParameterizedTest(name = "normalizes ''{0}'' → ''{1}''")

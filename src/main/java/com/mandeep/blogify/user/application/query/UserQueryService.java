@@ -1,8 +1,9 @@
 package com.mandeep.blogify.user.application.query;
 
+import com.mandeep.blogify.shared.domain.exception.CommonException;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +29,11 @@ public class UserQueryService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse getUserByEmail(String email) {
+    public UserResponse getUserByEmail(String userEmail) {
 
-        Email userEmail = new Email(email);
-        return userQueryRepository.findResponseByEmail(userEmail).orElseThrow(
-                () -> UserDomainException.emailNotFound(userEmail)
+        Email email = new Email(userEmail);
+        return userQueryRepository.findResponseByEmail(email).orElseThrow(
+                () -> CommonException.emailNotFound(email)
         );
     }
 

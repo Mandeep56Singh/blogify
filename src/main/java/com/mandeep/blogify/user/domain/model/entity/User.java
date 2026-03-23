@@ -1,7 +1,7 @@
 package com.mandeep.blogify.user.domain.model.entity;
 
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import lombok.Getter;
@@ -65,13 +65,13 @@ public class User {
     public static User reconstitute(
             UserId userId,
             UserName userName,
-            Email email,
+            Email userEmail,
             String password,
             boolean active,
             Role role,
             Instant createdAt
     ) {
-        return new User(userId, userName, email, password, active, role, createdAt);
+        return new User(userId, userName, userEmail, password, active, role, createdAt);
     }
     //endregion
 

@@ -1,6 +1,6 @@
 package com.mandeep.blogify.user.domain.model.valueobjects;
 
-import com.mandeep.blogify.user.domain.UserConstants;
+import com.mandeep.blogify.shared.AppConstants;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
 
 public record UserName(String value) {
@@ -12,8 +12,8 @@ public record UserName(String value) {
         }
 
         String trimmedValue = value.trim();
-        int minLen = UserConstants.USER_NAME_MIN_LENGTH.getValue();
-        int maxLen = UserConstants.USER_NAME_MAX_LENGTH.getValue();
+        int minLen = AppConstants.USER_NAME_MIN_LENGTH;
+        int maxLen = AppConstants.USER_NAME_MAX_LENGTH;
 
         if (trimmedValue.length() < minLen || trimmedValue.length() > maxLen) {
             throw UserDomainException.usernameInvalidLength(minLen, maxLen);

@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,14 +20,13 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Transactional
 class UserJpaRepositoryIntegrationTest extends BaseIntegrationTest {
 
     private static final UUID ID = UUID.fromString("019ce66a-7a58-7ebd-b78c-ac88bd154378");
     private static final String EMAIL = "user@231gmail.com";
     private static final String USER_NAME = "user";
     private static final String HASHED_PASSWORD = "hashed_password";
-    private static final Role USER_ROLE = Role.USER;
+    private static final Role ROLE = Role.USER;
 
     private static final UUID ID1 = UUID.fromString("019ce66a-7a58-7ebd-b78c-ac88bd154334");
     private static final String EMAIL1 = "hyper@231gmail.com";
@@ -44,25 +42,23 @@ class UserJpaRepositoryIntegrationTest extends BaseIntegrationTest {
 
     @BeforeEach
     void setup() {
-        UserEntity persistedUser = new UserEntity();
-        persistedUser.setId(ID);
-        persistedUser.setEmail(EMAIL);
-        persistedUser.setUserName(USER_NAME);
-        persistedUser.setPassword(HASHED_PASSWORD);
-        persistedUser.setActive(true);
-        persistedUser.setRole(USER_ROLE);
+        UserEntity user = UserEntity.builder()
+                .id(ID)
+                .email(EMAIL)
+                .userName(USER_NAME)
+                .password(HASHED_PASSWORD)
+                .isActive(true)
+                .role(ROLE)
+                .build();
 
-        entityManager.persist(persistedUser); // save the user
-
-        entityManager.flush(); // force JPA to store user in db
-        entityManager.clear(); // clear first level cache, so to make sure we call db everytime
+        persist(user);
 
     }
 
 
     @Nested
     @DisplayName("existsByEmail()")
-    class ExistsByEmail {
+    class ExistsByUserEmail {
 
         @Test
         @DisplayName("Return True when email exists")
@@ -120,7 +116,7 @@ class UserJpaRepositoryIntegrationTest extends BaseIntegrationTest {
 
     @Nested
     @DisplayName("findUserResponseByEmail()")
-    class FindUserResponseByEmail {
+    class FindUserResponseByUserEmail {
 
         @Test
         @DisplayName("should return response when user exists")

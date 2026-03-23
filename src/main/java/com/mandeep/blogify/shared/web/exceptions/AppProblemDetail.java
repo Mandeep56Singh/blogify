@@ -1,10 +1,12 @@
 package com.mandeep.blogify.shared.web.exceptions;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mandeep.blogify.shared.AppUtils;
 import com.mandeep.blogify.shared.domain.exception.DomainError;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+@JsonDeserialize(as = AppProblemDetail.class)
 public record AppProblemDetail(
         String type,
         HttpStatus status,

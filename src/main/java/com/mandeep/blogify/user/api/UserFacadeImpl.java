@@ -1,5 +1,6 @@
 package com.mandeep.blogify.user.api;
 
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.UserFacade;
 import com.mandeep.blogify.user.UserView;
@@ -7,7 +8,6 @@ import com.mandeep.blogify.user.application.command.UserCommandService;
 import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.application.query.UserQueryRepository;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,14 +26,14 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @Transactional
-    public void register(String email, String userName, String password, Role role) {
+    public UUID register(String email, String userName, String password, Role role) {
         UserRegistrationRequest userRegistrationRequest = new UserRegistrationRequest(
                 email,
                 userName,
                 password,
                 role
         );
-        userCommandService.register(userRegistrationRequest);
+        return userCommandService.register(userRegistrationRequest);
     }
 
 

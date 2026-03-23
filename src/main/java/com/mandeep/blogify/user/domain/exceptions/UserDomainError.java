@@ -13,32 +13,6 @@ public enum UserDomainError implements DomainError {
             "USER_ID_REQUIRED"
     ),
 
-    //region Email Errors
-    INVALID_EMAIL(
-            "Email is invalid",
-            "Please, Provide correct email format",
-            DomainErrorType.INVALID_INPUT,
-            "INVALID_EMAIL"
-    ),
-    EMAIL_REQUIRED(
-            "Email is required",
-            "Please, provide email.",
-            DomainErrorType.INVALID_INPUT,
-            "BLANK_OR_NULL_EMAIL"
-    ),
-    EMAIL_NOT_FOUND(
-            "Email is not found",
-            "Please check your value again or sign up, if you haven't",
-            DomainErrorType.NOT_FOUND,
-            "EMAIL_NOT_FOUND"
-    ),
-    EMAIL_ALREADY_EXISTS(
-            "Email already exists",
-            "Please, provide different value",
-            DomainErrorType.CONFLICT,
-            "EMAIL_ALREADY_EXISTS"
-    ),
-    //endregion
 
 
     //region UserName Errors

@@ -20,13 +20,13 @@ Ensuring total test isolation while utilizing a high-performance, shared databas
 ### Why it was a Challenge
 
 - **Shared Global State:**  
-  Using a "Singleton" Testcontainer pattern (starting the container once for the entire suite) meant all tests connected to the same PostgreSQL instance. Data persisted by one test (e.g., a registered email) remained in the DB, causing subsequent tests to fail with `UniqueConstraintViolation`.
+  Using a "Singleton" Testcontainer pattern (starting the container once for the entire suite) meant all tests connected to the same PostgreSQL instance. Data persisted by one test (e.g., a registered userEmail) remained in the DB, causing subsequent tests to fail with `UniqueConstraintViolation`.
 
 - **The Transaction Trap:**  
   Standard `@Transactional` rollbacks were sometimes insufficient, especially if service logic used `Propagation.REQUIRES_NEW`, which commits data regardless of the test’s rollback status.
 
 - **The Flakiness Factor:**  
-  Hardcoded constants for unique fields (like `test@email.com`) made tests brittle and prone to failure if run in a different order or in parallel.
+  Hardcoded constants for unique fields (like `test@userEmail.com`) made tests brittle and prone to failure if run in a different order or in parallel.
 
 ### Resolution
 

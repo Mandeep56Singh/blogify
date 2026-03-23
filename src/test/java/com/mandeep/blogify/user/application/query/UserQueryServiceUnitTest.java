@@ -1,10 +1,12 @@
 package com.mandeep.blogify.user.application.query;
 
+import com.mandeep.blogify.shared.domain.exception.CommonException;
+import com.mandeep.blogify.shared.domain.exception.enums.CommonError;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainError;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import org.junit.jupiter.api.DisplayName;
@@ -80,7 +82,7 @@ class UserQueryServiceUnitTest {
 
     @Nested
     @DisplayName("getUserByEmail()")
-    class GetUserByEmail {
+    class GetUserByUserEmail {
 
         @Test
         @DisplayName("Returns response when email exists")
@@ -102,13 +104,13 @@ class UserQueryServiceUnitTest {
             when(userQueryRepository.findResponseByEmail(any(Email.class))).thenReturn(Optional.empty());
 
             // Act
-            UserDomainException ex = catchThrowableOfType(
-                    UserDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> userQueryService.getUserByEmail(EMAIL)
             );
 
             // Assert
-            assertThat(ex.getError()).isEqualTo(UserDomainError.EMAIL_NOT_FOUND);
+            assertThat(ex.getError()).isEqualTo(CommonError.EMAIL_NOT_FOUND);
         }
     }
 

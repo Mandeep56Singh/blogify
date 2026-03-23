@@ -1,6 +1,7 @@
 package com.mandeep.blogify.shared.domain.exception;
 
 import com.mandeep.blogify.shared.domain.exception.enums.CommonError;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 
 public class CommonException extends DomainException {
 
@@ -8,6 +9,7 @@ public class CommonException extends DomainException {
         super(error, message);
     }
 
+    //region Authentication
     public static CommonException invalidCredentials() {
         return new CommonException(
                 CommonError.INVALID_CREDENTIALS,
@@ -19,6 +21,41 @@ public class CommonException extends DomainException {
         return new CommonException(
                 CommonError.ACCOUNT_NOT_AUTHENTICATED,
                 CommonError.ACCOUNT_NOT_AUTHENTICATED.detail()
+        );
+    }
+    //endregion
+
+    //region Email Exceptions
+    public static CommonException invalidEmail() {
+        return new CommonException(
+                CommonError.INVALID_EMAIL,
+                CommonError.INVALID_EMAIL.detail()
+        );
+    }
+
+    public static CommonException emailRequired() {
+        return new CommonException(CommonError.EMAIL_REQUIRED, CommonError.EMAIL_REQUIRED.detail());
+    }
+
+    public static CommonException emailAlreadyExists(Email email) {
+        return new CommonException(
+                CommonError.EMAIL_ALREADY_EXISTS,
+                "'" + email.value() + "' already exists!, Please provide different email"
+        );
+    }
+
+    public static CommonException emailNotFound(Email email) {
+        return new CommonException(
+                CommonError.EMAIL_NOT_FOUND,
+                "User with email Address '" + email.value() + "' not found"
+        );
+    }
+    //endregion
+
+    public static CommonException usernameAlreadyExists(String userName) {
+        return new CommonException(
+                CommonError.USERNAME_ALREADY_EXISTS,
+                "'" + userName + "' already exists!, Please provide different username"
         );
     }
 

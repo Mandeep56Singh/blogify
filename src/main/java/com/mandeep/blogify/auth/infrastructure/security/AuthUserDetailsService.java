@@ -1,8 +1,8 @@
 package com.mandeep.blogify.auth.infrastructure.security;
 
 import com.mandeep.blogify.auth.domain.model.entity.AuthenticatedUser;
-import com.mandeep.blogify.auth.domain.model.valueObject.Email;
 import com.mandeep.blogify.auth.domain.repository.AuthRepository;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -56,6 +56,8 @@ public class UserEntity extends BaseEntity {
                 ", version=" + getVersion() +
                 '}';
     }
+
+    //region Builder
     public static Builder builder() {
         return new Builder();
     }
@@ -102,8 +104,11 @@ public class UserEntity extends BaseEntity {
             if (user.email == null || user.userName == null || user.password == null || user.role == null) {
                 throw new IllegalStateException("Required fields are missing");
             }
+
             return user;
         }
 
     }
+    //endregion
+
 }

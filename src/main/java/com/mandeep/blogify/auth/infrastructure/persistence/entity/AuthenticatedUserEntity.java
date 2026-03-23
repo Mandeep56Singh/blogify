@@ -45,4 +45,62 @@ public class AuthenticatedUserEntity {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+
+    //region Builder
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final AuthenticatedUserEntity authenticatedUser;
+
+        public Builder() {
+            this.authenticatedUser = new AuthenticatedUserEntity();
+        }
+
+        public Builder id(UUID id) {
+            authenticatedUser.setId(id);
+            return this;
+        }
+
+        public Builder email(String email) {
+            authenticatedUser.setEmail(email);
+            return this;
+        }
+
+        public Builder username(String username) {
+            authenticatedUser.setUserName(username);
+            return this;
+        }
+
+        public Builder password(String password) {
+            authenticatedUser.setPassword(password);
+            return this;
+        }
+
+        public Builder active(boolean active) {
+            authenticatedUser.setActive(active);
+            return this;
+        }
+
+        public Builder role(Role role) {
+            authenticatedUser.setRole(role);
+            return this;
+        }
+
+        public AuthenticatedUserEntity build() {
+            if (
+                    authenticatedUser.id == null ||
+                            authenticatedUser.userName == null ||
+                            authenticatedUser.email == null || authenticatedUser.role == null
+            ) {
+                throw new IllegalArgumentException("Required fields are missing");
+            }
+
+            return authenticatedUser;
+        }
+    }
+    //endregion
 }

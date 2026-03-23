@@ -5,12 +5,12 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
-
-
     locations: classpath:db/migration
 
   logging:
     level:
-      # Set this to DEBUG if you want to see SQL queries during tests
-      org.hibernate.orm.jdbc.bind: DEBUG
+      root: WARN
+      com.mandeep.blogify: INFO
+      org.springframework: WARN
+      org.hibernate.SQL: ERROR
 

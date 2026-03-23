@@ -1,7 +1,7 @@
 package com.mandeep.blogify.user.domain.model.entity;
 
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import org.junit.jupiter.api.DisplayName;

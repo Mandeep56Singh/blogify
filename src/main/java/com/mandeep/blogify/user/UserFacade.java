@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface UserFacade {
-    void register(String email, String userName, String password, Role role);
+    UUID register(String email, String userName, String password, Role role);
 
     boolean existsByEmail(String email);
 

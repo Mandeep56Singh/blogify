@@ -1,11 +1,12 @@
 package com.mandeep.blogify.user.application.query;
 
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
+import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.exception.DomainError;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import com.mandeep.blogify.user.infrastructure.persistence.entity.UserEntity;
@@ -15,14 +16,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
-@Transactional
 public class UserQueryServiceIntegrationTest extends BaseIntegrationTest {
 
     //region Mock Data
@@ -32,7 +32,7 @@ public class UserQueryServiceIntegrationTest extends BaseIntegrationTest {
     private static final String EMAIL = "user@231gmail.com";
     private static final String USER_NAME = "user";
     private static final String HASHED_PASSWORD = "hashed_password";
-    private static final Role USER_ROLE = Role.USER;
+    private static final Role ROLE = Role.USER;
 
     // non existent values in db
     private static final UUID ID1 = UUID.fromString("019ce66a-7a58-7ebd-b78c-ac88bd154334");
@@ -41,30 +41,30 @@ public class UserQueryServiceIntegrationTest extends BaseIntegrationTest {
     //endregion
 
 
-
     @Autowired
     private UserQueryService userQueryService;
 
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
 
 
 
     @BeforeEach
     void persistUser() {
-        UserEntity persistedUser = new UserEntity();
-        persistedUser.setId(ID);
-        persistedUser.setEmail(EMAIL);
-        persistedUser.setUserName(USER_NAME);
-        persistedUser.setPassword(HASHED_PASSWORD);
-        persistedUser.setActive(true);
-        persistedUser.setRole(USER_ROLE);
+        UserEntity user = UserEntity.builder()
+                .id(ID)
+                .email(EMAIL)
+                .userName(USER_NAME)
+                .password(HASHED_PASSWORD)
+                .isActive(true)
+                .role(ROLE)
+                .build();
 
-        entityManager.persist(persistedUser); // save the user
-
-        entityManager.flush(); // force JPA to store user in db
-        entityManager.clear(); // clear first level cache, so to make sure we call db everytime
+        persist(user);
     }
 
 
@@ -102,7 +102,7 @@ public class UserQueryServiceIntegrationTest extends BaseIntegrationTest {
 
     @Nested
     @DisplayName("getUserByEmail()")
-    class GetUserByEmail {
+    class GetUserByUserEmail {
 
         @Test
         @DisplayName("Returns response when email exists")
@@ -118,11 +118,11 @@ public class UserQueryServiceIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Throws exception when email is not found")
         void should_ThrowException_When_EmailDoesNotExist() {
 
-            UserDomainException ex = catchThrowableOfType(
-                    UserDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> userQueryService.getUserByEmail(EMAIL1)
             );
-            DomainError emailError = UserDomainException.emailNotFound(new Email(EMAIL1)).getError();
+            DomainError emailError = CommonException.emailNotFound(new Email(EMAIL1)).getError();
 
             assertThat(ex.getError()).isEqualTo(emailError);
         }

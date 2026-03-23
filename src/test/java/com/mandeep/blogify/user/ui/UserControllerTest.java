@@ -21,7 +21,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-@Transactional
 class UserControllerFullTest extends BaseIntegrationTest {
 
     private static final UUID USER_ID = UUID.randomUUID();
@@ -38,6 +37,7 @@ class UserControllerFullTest extends BaseIntegrationTest {
 
     @BeforeEach
     void persistUser() {
+
         UserEntity user = UserEntity.builder()
                 .id(USER_ID)
                 .email(EMAIL)
@@ -47,9 +47,7 @@ class UserControllerFullTest extends BaseIntegrationTest {
                 .role(ROLE)
                 .build();
 
-        entityManager.persist(user);
-        entityManager.flush();
-        entityManager.clear();
+        persist(user);
     }
 
     @Nested
@@ -59,8 +57,10 @@ class UserControllerFullTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Returns 200 and user JSON when user exists")
         void returns200WhenUserExists() throws Exception {
-            mockMvc.perform(get("/api/v1/users/{id}", USER_ID)
-                            .contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(
+                            get("/api/v1/users/{id}", USER_ID)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                    )
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.id").value(USER_ID.toString()))
                     .andExpect(jsonPath("$.data.userName").value(USERNAME))
@@ -79,7 +79,7 @@ class UserControllerFullTest extends BaseIntegrationTest {
 
     @Nested
     @DisplayName("GET /api/v1/users/email")
-    class GetUserByEmail {
+    class GetUserByUserEmail {
 
         @Test
         @DisplayName("Returns 200 and user JSON when email exists")

@@ -2,9 +2,9 @@ package com.mandeep.blogify.auth.domain.model.entity;
 
 import com.mandeep.blogify.auth.domain.exception.AuthDomainException;
 import com.mandeep.blogify.auth.domain.model.valueObject.AuthUserId;
-import com.mandeep.blogify.auth.domain.model.valueObject.Email;
 import com.mandeep.blogify.auth.domain.model.valueObject.HashedPassword;
 import com.mandeep.blogify.auth.domain.repository.PasswordVerifier;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import lombok.Getter;
 

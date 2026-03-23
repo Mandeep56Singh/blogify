@@ -1,8 +1,8 @@
 package com.mandeep.blogify.user.infrastructure.persistence.adapter;
 
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.application.query.UserQueryRepository;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import com.mandeep.blogify.user.infrastructure.persistence.repository.UserJpaRepository;
@@ -44,7 +44,7 @@ public class UserQueryAdapter implements UserQueryRepository {
     }
 
     @Override
-    public boolean existsByEmail(Email email) {
-        return userJpaRepository.existsByEmail(email.value());
+    public boolean existsByEmail(Email userEmail) {
+        return userJpaRepository.existsByEmail(userEmail.value());
     }
 }

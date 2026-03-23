@@ -1,21 +1,24 @@
 package com.mandeep.blogify.user.application.command;
 
 
+import com.mandeep.blogify.shared.domain.exception.CommonException;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
-import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
 import com.mandeep.blogify.user.domain.model.entity.User;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import com.mandeep.blogify.user.domain.repository.UserIdentityGenerator;
 import com.mandeep.blogify.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.util.UUID;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserCommandService {
@@ -26,18 +29,23 @@ public class UserCommandService {
 
 
     @Transactional
-    public void register(UserRegistrationRequest userRegistrationRequest) {
+    public UUID register(UserRegistrationRequest userRegistrationRequest) {
 
-        Email email = new Email(userRegistrationRequest.email());
+        log.debug("register.attempt email='{}' username='{}' role='{}'",
+                userRegistrationRequest.email(),
+                userRegistrationRequest.userName(),
+                userRegistrationRequest.role());
 
-        if (userRepository.existsByEmail(email)) {
-            throw UserDomainException.emailAlreadyExists(email);
+        Email userEmail = new Email(userRegistrationRequest.email());
+
+        if (userRepository.existsByEmail(userEmail)) {
+            throw CommonException.emailAlreadyExists(userEmail);
         }
 
         UserName name = new UserName(userRegistrationRequest.userName());
 
         if (userRepository.existsByUserName(name)) {
-            throw UserDomainException.usernameAlreadyExists(name);
+            throw CommonException.usernameAlreadyExists(name.value());
         }
 
 
@@ -48,13 +56,20 @@ public class UserCommandService {
         User user = User.register(
                 id,
                 name,
-                email,
+                userEmail,
                 password,
                 userRegistrationRequest.role(),
                 this.clock
         );
         userRepository.save(user);
 
+        log.info("register.success id={} email='{}' username='{}' role='{}'",
+                user.getUserId().value(),
+                user.getEmail().value(),
+                user.getUserName().value(),
+                user.getRole());
+
+        return user.getUserId().value();
     }
 
 }

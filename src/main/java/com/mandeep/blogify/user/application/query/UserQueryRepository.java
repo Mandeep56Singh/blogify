@@ -1,7 +1,7 @@
 package com.mandeep.blogify.user.application.query;
 
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.user.application.dto.UserResponse;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 
@@ -19,6 +19,6 @@ public interface UserQueryRepository {
 
     List<UserResponse> findUsersById(Set<UUID> ids);
 
-    boolean existsByEmail(Email email);
+    boolean existsByEmail(Email userEmail);
 
 }

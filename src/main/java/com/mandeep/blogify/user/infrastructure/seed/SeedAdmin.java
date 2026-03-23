@@ -1,10 +1,10 @@
 package com.mandeep.blogify.user.infrastructure.seed;
 
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.command.UserCommandService;
 import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
 import com.mandeep.blogify.user.application.query.UserQueryRepository;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

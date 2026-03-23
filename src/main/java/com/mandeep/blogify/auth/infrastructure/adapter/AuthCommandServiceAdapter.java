@@ -2,10 +2,10 @@ package com.mandeep.blogify.auth.infrastructure.adapter;
 
 
 import com.mandeep.blogify.auth.domain.model.entity.AuthenticatedUser;
-import com.mandeep.blogify.auth.domain.model.valueObject.Email;
 import com.mandeep.blogify.auth.domain.repository.AuthRepository;
 import com.mandeep.blogify.auth.infrastructure.persistence.mapper.AuthenticatedUserEntityMapper;
 import com.mandeep.blogify.auth.infrastructure.persistence.repository.AuthenticatedUserJpaRepository;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

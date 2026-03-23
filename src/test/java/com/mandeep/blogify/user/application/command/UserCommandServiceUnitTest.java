@@ -1,11 +1,13 @@
 package com.mandeep.blogify.user.application.command;
 
+import com.mandeep.blogify.shared.domain.exception.CommonException;
+import com.mandeep.blogify.shared.domain.exception.enums.CommonError;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainError;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
 import com.mandeep.blogify.user.domain.model.entity.User;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import com.mandeep.blogify.user.domain.repository.UserIdentityGenerator;
@@ -93,13 +95,13 @@ class UserCommandServiceUnitTest {
             when(userRepository.existsByEmail(new Email(EMAIL))).thenReturn(true);
 
             // Act
-            UserDomainException ex = catchThrowableOfType(
-                    UserDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> userCommandService.register(VALID_REQUEST)
             );
 
             // Assert
-            assertThat(ex.getError()).isEqualTo(UserDomainError.EMAIL_ALREADY_EXISTS);
+            assertThat(ex.getError()).isEqualTo(CommonError.EMAIL_ALREADY_EXISTS);
             verify(userRepository, never()).save(any());
         }
 
@@ -111,13 +113,13 @@ class UserCommandServiceUnitTest {
             when(userRepository.existsByUserName(new UserName(USER_NAME))).thenReturn(true);
 
             // Act
-            UserDomainException ex = catchThrowableOfType(
-                    UserDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> userCommandService.register(VALID_REQUEST)
             );
 
             // Assert
-            assertThat(ex.getError()).isEqualTo(UserDomainError.USERNAME_ALREADY_EXISTS);
+            assertThat(ex.getError()).isEqualTo(CommonError.USERNAME_ALREADY_EXISTS);
             verify(userRepository, never()).save(any());
         }
     }

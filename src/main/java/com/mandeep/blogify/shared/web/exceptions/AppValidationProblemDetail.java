@@ -1,5 +1,6 @@
 package com.mandeep.blogify.shared.web.exceptions;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mandeep.blogify.shared.AppUtils;
 import com.mandeep.blogify.shared.domain.exception.enums.CommonError;
 import jakarta.validation.ConstraintViolation;
@@ -9,6 +10,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.*;
 
+@JsonDeserialize(as = AppValidationProblemDetail.class)
 public record AppValidationProblemDetail(
         String type,
         HttpStatus status,

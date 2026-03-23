@@ -3,17 +3,20 @@ package com.mandeep.blogify.auth.application.command;
 import com.mandeep.blogify.auth.application.dto.*;
 import com.mandeep.blogify.auth.domain.exception.AuthDomainException;
 import com.mandeep.blogify.auth.domain.model.entity.AuthenticatedUser;
-import com.mandeep.blogify.auth.domain.model.valueObject.Email;
+import com.mandeep.blogify.auth.domain.model.valueObject.AuthUserId;
 import com.mandeep.blogify.auth.domain.model.valueObject.HashedPassword;
 import com.mandeep.blogify.auth.domain.model.valueObject.Password;
 import com.mandeep.blogify.auth.domain.repository.AuthRepository;
 import com.mandeep.blogify.auth.domain.repository.PasswordVerifier;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -36,12 +39,13 @@ public class AuthCommandService {
         String userName = signUpRequest.userName();
         HashedPassword hashedPassword = hashPassword(signUpRequest.password());
 
-        userFacade.register(email, userName, hashedPassword.value(), Role.USER);
-        log.info("signup.success email='{}' userName='{}'",
-                signUpRequest.email(),
-                signUpRequest.userName());
+        UUID userId = userFacade.register(email, userName, hashedPassword.value(), Role.USER);
+        log.info("signup.success id={} email='{}' userName='{}'",
+                userId, email, userName);
 
-        return login(new LoginRequest(email, signUpRequest.password()));
+        log.debug("token.generation.attempt id={} role='{}'", userId, Role.USER);
+
+        return createLoginResponse(new AuthUserId(userId), Role.USER);
     }
 
     @Transactional
@@ -50,7 +54,15 @@ public class AuthCommandService {
         log.debug("login.attempt email={}",
                 loginRequest.email());
 
-        Email email = new Email(loginRequest.email());
+
+        //Checking for a valid email
+        Email email;
+        try {
+            email = new Email(loginRequest.email());
+        } catch (Exception ex) {
+            throw AuthDomainException.invalidCredentials();
+        }
+
         String password = loginRequest.password();
 
         AuthenticatedUser user = authRepository.findByEmail(email).orElseThrow(
@@ -59,25 +71,28 @@ public class AuthCommandService {
 
         user.authenticate(password, passwordVerifier);
 
+        return createLoginResponse(user.getAuthUserId(), user.getRole());
+    }
+
+    private HashedPassword hashPassword(String value) {
+        Password password = new Password(value);
+        return new HashedPassword(passwordHasher.hash(password.value()));
+    }
+
+    private LoginResponse createLoginResponse(AuthUserId id, Role role) {
+        TokenInfo tokenInfo = tokenProvider.generateToken(id, role);
+
         AuthUserResponse authUserResponse = new AuthUserResponse(
-                user.getAuthUserId().value(),
-                user.getRole().name()
+                id.value(),
+                role.name()
         );
 
-        TokenInfo tokenInfo = tokenProvider.generateToken(user.getAuthUserId(), user.getRole());
-
-        log.debug("login.success email='{}'", email.value());
         return new LoginResponse(
                 tokenInfo.token(),
                 "Bearer",
                 tokenInfo.expiresIn(),
                 authUserResponse
         );
-    }
-
-    private HashedPassword hashPassword(String value) {
-        Password password = new Password(value);
-        return new HashedPassword(passwordHasher.hash(password.value()));
     }
 
 }

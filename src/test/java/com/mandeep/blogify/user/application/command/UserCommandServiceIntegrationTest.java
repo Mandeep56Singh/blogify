@@ -1,11 +1,12 @@
 package com.mandeep.blogify.user.application.command;
 
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
+import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.exception.DomainError;
+import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
-import com.mandeep.blogify.user.domain.model.valueobjects.Email;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import com.mandeep.blogify.user.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +20,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
-@Transactional
 public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
 
     //region Dependencies
@@ -76,12 +76,12 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
                     firstRequest.role()
             );
 
-            UserDomainException ex = catchThrowableOfType(
-                    UserDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> userCommandService.register(requestWithDuplicateEmail)
             );
 
-            DomainError emailError = UserDomainException.emailAlreadyExists(new Email(requestWithDuplicateEmail.email())).getError();
+            DomainError emailError = CommonException.emailAlreadyExists(new Email(requestWithDuplicateEmail.email())).getError();
 
             assertThat(ex.getError()).isEqualTo(emailError);
         }
@@ -106,13 +106,13 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
                     firstRequest.role()
             );
 
-            UserDomainException ex = catchThrowableOfType(
-                    UserDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> userCommandService.register(requestWithDuplicateUsername)
             );
 
-            DomainError usernameError = UserDomainException
-                    .usernameAlreadyExists(new UserName(requestWithDuplicateUsername.userName())).getError();
+            DomainError usernameError = CommonException
+                    .usernameAlreadyExists(requestWithDuplicateUsername.userName()).getError();
 
             assertThat(ex.getError()).isEqualTo(usernameError);
         }
