@@ -28,7 +28,7 @@ public class CategoryException extends DomainException {
     public static CategoryException categoryNotFound(CategoryId categoryId) {
         return new CategoryException(
                 CategoryError.CATEGORY_NOT_FOUND,
-                "Category with id=" + categoryId.value() + "not found"
+                "Category with id=" + categoryId.value() + " not found"
         );
     }
 
@@ -47,4 +47,15 @@ public class CategoryException extends DomainException {
                         + " already exists."
         );
     }
+
+    public static CategoryException categoryArchived(CategoryId id) {
+        return new CategoryException(
+                CategoryError.CATEGORY_IS_ARCHIVED,
+                "Cannot operate on, Category with id "
+                        + id.value()
+                        + " is archived."
+        );
+    }
+
+
 }

@@ -22,7 +22,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public abstract class BaseIntegrationTest {
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    protected JdbcTemplate jdbcTemplate;
 
     @Autowired
     protected EntityManager entityManager;

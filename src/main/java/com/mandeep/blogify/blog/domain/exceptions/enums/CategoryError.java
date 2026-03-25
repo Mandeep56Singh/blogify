@@ -34,7 +34,14 @@ public enum CategoryError implements DomainError {
             "The requested category does not exist",
             DomainErrorType.NOT_FOUND,
             "CATEGORY_NOT_FOUND"
-    );
+    ),
+    CATEGORY_IS_ARCHIVED(
+            "Category is deleted",
+            "You can't perform operation on deleted category",
+            DomainErrorType.UNAUTHORIZED,
+            "CATEGORY_IS_ARCHIVED"
+    ),
+    ;
 
     private final String title;
     private final String detail;

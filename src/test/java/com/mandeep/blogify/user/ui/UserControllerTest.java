@@ -3,7 +3,6 @@ package com.mandeep.blogify.user.ui;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.infrastructure.persistence.entity.UserEntity;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -32,8 +30,6 @@ class UserControllerFullTest extends BaseIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private EntityManager entityManager;
 
     @BeforeEach
     void persistUser() {

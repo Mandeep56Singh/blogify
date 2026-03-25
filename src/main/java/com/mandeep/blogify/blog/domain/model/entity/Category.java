@@ -6,6 +6,8 @@ import com.mandeep.blogify.blog.domain.model.valueObject.CategoryStatus;
 import com.mandeep.blogify.blog.domain.model.valueObject.CategoryTitle;
 import lombok.Getter;
 
+import java.util.Objects;
+
 @Getter
 public class Category {
 
@@ -62,4 +64,25 @@ public class Category {
         this.categoryStatus = CategoryStatus.ARCHIVED;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Category category = (Category) o;
+        return Objects.equals(categoryId, category.categoryId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(categoryId);
+    }
+
+    @Override
+    public String toString() {
+        return "Category{" +
+                "categoryId=" + categoryId +
+                ", title=" + title +
+                ", description=" + description +
+                ", categoryStatus=" + categoryStatus +
+                '}';
+    }
 }

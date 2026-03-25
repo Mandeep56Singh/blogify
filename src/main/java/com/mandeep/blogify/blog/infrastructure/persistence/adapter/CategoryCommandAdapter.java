@@ -2,6 +2,7 @@ package com.mandeep.blogify.blog.infrastructure.persistence.adapter;
 
 import com.mandeep.blogify.blog.domain.model.entity.Category;
 import com.mandeep.blogify.blog.domain.model.valueObject.CategoryId;
+import com.mandeep.blogify.blog.domain.model.valueObject.CategoryStatus;
 import com.mandeep.blogify.blog.domain.model.valueObject.CategoryTitle;
 import com.mandeep.blogify.blog.domain.repository.CategoryRepository;
 import com.mandeep.blogify.blog.infrastructure.persistence.entity.CategoryEntity;
@@ -59,7 +60,7 @@ public class CategoryCommandAdapter implements CategoryRepository {
 
     @Override
     public boolean existsByTitle(CategoryTitle categoryTitle) {
-        return categoryJpaRepository.existsByTitle(categoryTitle.value());
+        return categoryJpaRepository.existsByTitleAndStatus(categoryTitle.value(), CategoryStatus.ACTIVE);
     }
 
     @Override

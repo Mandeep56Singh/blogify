@@ -5,8 +5,6 @@ import com.mandeep.blogify.shared.domain.exception.enums.CommonError;
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
-import com.mandeep.blogify.user.domain.exceptions.UserDomainError;
-import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
 import com.mandeep.blogify.user.domain.model.entity.User;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;

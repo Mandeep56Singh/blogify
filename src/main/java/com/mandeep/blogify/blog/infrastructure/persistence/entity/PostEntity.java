@@ -70,4 +70,76 @@ public class PostEntity extends BaseEntity {
                 ", version=" + getVersion() +
                 '}';
     }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final PostEntity post;
+
+        public Builder() {
+            post = new PostEntity();
+        }
+
+        public Builder id(UUID id) {
+            post.setId(id);
+            return this;
+        }
+
+        public Builder title(String title) {
+            post.setTitle(title);
+            return this;
+        }
+
+        public Builder slug(String slug) {
+            post.setSlug(slug);
+            return this;
+        }
+
+        public Builder content(String content) {
+            post.setContent(content);
+            return this;
+        }
+
+        public Builder authorId(UUID authorId) {
+            post.setAuthorId(authorId);
+            return this;
+        }
+
+        public Builder status(PostStatus status) {
+            post.setStatus(status);
+            return this;
+        }
+
+        public Builder categories(Set<CategoryEntity> categories) {
+            post.setCategories(categories);
+            return this;
+        }
+
+        public Builder publishAt(Instant date) {
+            post.setPublishedAt(date);
+            return this;
+        }
+
+        public PostEntity build() {
+
+            if (
+                    post.id == null
+                            || post.title == null
+                            || post.title.isBlank()
+                            || post.content == null
+                            || post.content.isBlank()
+                            || post.slug == null
+                            || post.slug.isBlank()
+                            || post.authorId == null
+                            || post.status == null
+
+            ) {
+                throw new IllegalArgumentException("required fields are missing");
+            }
+            return post;
+        }
+    }
 }

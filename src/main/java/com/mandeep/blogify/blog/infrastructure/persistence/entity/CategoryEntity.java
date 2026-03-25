@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Table(name = "categories")
 @Entity
@@ -47,5 +48,48 @@ public class CategoryEntity extends BaseEntity {
                 ", updatedAt=" + getLastModifiedAt() +
                 ", version=" + getVersion() +
                 '}';
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final CategoryEntity category;
+
+        public Builder() {
+            this.category = new CategoryEntity();
+        }
+
+        public Builder id(UUID id) {
+            category.setId(id);
+            return this;
+        }
+
+        public Builder title(String title) {
+            category.setTitle(title);
+            return this;
+        }
+
+        public Builder description(String description) {
+            category.setDescription(description);
+            return this;
+        }
+
+        public Builder status(CategoryStatus status) {
+            category.setStatus(status);
+            return this;
+        }
+
+        public CategoryEntity build() {
+
+            if (category.id == null || category.title == null || category.status == null) {
+                throw new IllegalArgumentException("Required fields are missing in category");
+            }
+
+            return category;
+        }
+
     }
 }

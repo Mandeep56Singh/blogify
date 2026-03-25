@@ -42,5 +42,4 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, UUID> {
                 WHERE p.id IN :ids
             """)
     List<PostEntity> findPostsWithCategoriesByIds(@Param("ids") List<UUID> ids);
-
 }

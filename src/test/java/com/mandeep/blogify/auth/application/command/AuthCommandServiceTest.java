@@ -4,7 +4,6 @@ import com.mandeep.blogify.auth.application.dto.LoginRequest;
 import com.mandeep.blogify.auth.application.dto.LoginResponse;
 import com.mandeep.blogify.auth.application.dto.SignUpRequest;
 import com.mandeep.blogify.auth.domain.exception.AuthDomainException;
-import com.mandeep.blogify.auth.domain.repository.AuthRepository;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.exception.DomainError;

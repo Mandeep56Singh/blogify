@@ -87,6 +87,10 @@ public class CategoryCommandService {
             throw CategoryException.categoryAlreadyExists(newTitle);
         }
 
+        if (category.getCategoryStatus().isArchived()) {
+            throw CategoryException.categoryArchived(categoryId);
+        }
+
         category.update(newTitle, newDescription);
 
         categoryRepository.save(category);

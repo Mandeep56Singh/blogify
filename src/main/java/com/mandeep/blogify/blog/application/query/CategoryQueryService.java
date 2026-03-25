@@ -31,7 +31,6 @@ public class CategoryQueryService {
         log.debug("category.fetch.attempt id={}", id);
 
         return categoryQueryRepository.findById(id).orElseThrow(() -> CategoryException.categoryNotFound(new CategoryId(id))
-
         );
     }
 }

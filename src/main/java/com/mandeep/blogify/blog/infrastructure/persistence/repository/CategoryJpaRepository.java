@@ -1,6 +1,7 @@
 package com.mandeep.blogify.blog.infrastructure.persistence.repository;
 
 import com.mandeep.blogify.blog.application.dto.CategoryResponse;
+import com.mandeep.blogify.blog.domain.model.valueObject.CategoryStatus;
 import com.mandeep.blogify.blog.infrastructure.persistence.entity.CategoryEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,8 @@ import java.util.UUID;
 @Repository
 public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, UUID> {
 
-    boolean existsByTitle(String title);
+
+    boolean existsByTitleAndStatus(String title, CategoryStatus status);
 
     @Query("""
                    SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END

@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Objects;
 
 @Getter
 public class Post {
@@ -127,4 +128,29 @@ public class Post {
         this.postStatus = PostStatus.ARCHIVED;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Post post = (Post) o;
+        return Objects.equals(postId, post.postId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(postId);
+    }
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "postId=" + postId +
+                ", postTitle=" + postTitle +
+                ", postSlug=" + postSlug +
+                ", postContent=" + postContent +
+                ", authorId=" + authorId +
+                ", createdAt=" + createdAt +
+                ", publishedAt=" + publishedAt +
+                ", postStatus=" + postStatus +
+                '}';
+    }
 }
