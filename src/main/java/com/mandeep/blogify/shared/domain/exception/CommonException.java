@@ -23,6 +23,13 @@ public class CommonException extends DomainException {
                 CommonError.ACCOUNT_NOT_AUTHENTICATED.detail()
         );
     }
+
+    public static CommonException accountBlocked(String email) {
+        return new CommonException(
+                CommonError.ACCOUNT_BLOCKED,
+                "The account with email '" + email + "' has been blocked, Please contact support for assistance"
+        );
+    }
     //endregion
 
     //region Email Exceptions

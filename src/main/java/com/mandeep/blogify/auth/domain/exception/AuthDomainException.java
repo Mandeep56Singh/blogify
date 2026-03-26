@@ -8,20 +8,6 @@ public class AuthDomainException extends DomainException {
         super(authDomainError, message);
     }
 
-    public static AuthDomainException invalidCredentials() {
-        return new AuthDomainException(
-                AuthDomainError.INVALID_CREDENTIALS,
-                AuthDomainError.INVALID_CREDENTIALS.detail()
-        );
-    }
-
-    public static AuthDomainException accountBlocked(String email) {
-        return new AuthDomainException(
-                AuthDomainError.ACCOUNT_BLOCKED,
-                "The account with email '" + email + "' has been blocked, Please contact support for assistance"
-        );
-    }
-
     //region Password Exceptions
     public static AuthDomainException passwordRequired() {
         return new AuthDomainException(AuthDomainError.PASSWORD_REQUIRED, AuthDomainError.PASSWORD_REQUIRED.detail());

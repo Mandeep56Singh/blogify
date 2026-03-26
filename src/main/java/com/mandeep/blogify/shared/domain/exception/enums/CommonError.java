@@ -17,8 +17,14 @@ public enum CommonError implements DomainError {
             DomainErrorType.UNAUTHORIZED,
             "ACCOUNT_NOT_AUTHENTICATED"
     ),
+    ACCOUNT_BLOCKED(
+            "Account blocked",
+            "Your account has been blocked. Please contact support for assistance.",
+            DomainErrorType.FORBIDDEN,
+            "AUTH_ACCOUNT_BLOCKED"
+    ),
     //endregion
-    
+
     //region Authorization
     ACCESS_DENIED(
             "Access denied",
@@ -33,15 +39,15 @@ public enum CommonError implements DomainError {
             "UNAUTHORIZED_ACCESS"
     ),
     //endregion
-    
-    
+
+
     IMAGE_TOO_LARGE(
             "Image too large",
             "The uploaded image exceeds the maximum allowed size",
             DomainErrorType.INVALID_INPUT,
             "IMAGE_TOO_LARGE"
     ),
-    
+
     RESOURCE_NOT_FOUND(
             "Resource not found",
             "The requested resource could not be found. Please check the URL or ID and try again.",
@@ -56,7 +62,7 @@ public enum CommonError implements DomainError {
             DomainErrorType.INVALID_INPUT,
             "VALIDATION_ERROR"
     ),
-    
+
     TYPE_MISMATCH(
             "Invalid parameter type",
             "One or more parameters have invalid types, please check the request",
@@ -100,7 +106,7 @@ public enum CommonError implements DomainError {
             "USERNAME_ALREADY_EXISTS"
     ),
     //endregion
-    
+
     INTERNAL_SERVER_ERROR(
             "Something went wrong",
             "An unexpected error occurred. Please contact support.",

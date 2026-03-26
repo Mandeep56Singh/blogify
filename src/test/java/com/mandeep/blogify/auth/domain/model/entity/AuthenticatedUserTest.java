@@ -1,9 +1,9 @@
 package com.mandeep.blogify.auth.domain.model.entity;
 
-import com.mandeep.blogify.auth.domain.exception.AuthDomainException;
 import com.mandeep.blogify.auth.domain.model.valueObject.AuthUserId;
 import com.mandeep.blogify.auth.domain.model.valueObject.HashedPassword;
 import com.mandeep.blogify.auth.domain.repository.PasswordVerifier;
+import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.exception.DomainError;
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
@@ -68,11 +68,11 @@ class AuthenticatedUserTest {
             );
 
             // Generate the exact domain error using your factory method
-            DomainError expectedError = AuthDomainException.accountBlocked(anEmail.value()).getError();
+            DomainError expectedError = CommonException.accountBlocked(anEmail.value()).getError();
 
             // Act
-            AuthDomainException ex = catchThrowableOfType(
-                    AuthDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> blockedUser.authenticate("any_password", passwordVerifier)
             );
 
@@ -88,11 +88,11 @@ class AuthenticatedUserTest {
             AuthenticatedUser user = AuthenticatedUser.load(aUserId, aUserName, anEmail, aHashedPassword, Role.USER, true);
             when(passwordVerifier.matches("wrong_pass", aHashedPassword.value())).thenReturn(false);
 
-            DomainError expectedError = AuthDomainException.invalidCredentials().getError();
+            DomainError expectedError = CommonException.invalidCredentials().getError();
 
             // Act
-            AuthDomainException ex = catchThrowableOfType(
-                    AuthDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> user.authenticate("wrong_pass", passwordVerifier)
             );
 

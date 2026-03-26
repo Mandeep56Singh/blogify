@@ -5,7 +5,7 @@ import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.UserFacade;
 import com.mandeep.blogify.user.UserView;
 import com.mandeep.blogify.user.application.command.UserCommandService;
-import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
+import com.mandeep.blogify.user.application.dto.RegistrationRequestWithRole;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.application.query.UserQueryRepository;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
@@ -27,13 +27,13 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @Transactional
     public UUID register(String email, String userName, String password, Role role) {
-        UserRegistrationRequest userRegistrationRequest = new UserRegistrationRequest(
+        RegistrationRequestWithRole registrationRequestWithRole = new RegistrationRequestWithRole(
                 email,
                 userName,
                 password,
                 role
         );
-        return userCommandService.register(userRegistrationRequest);
+        return userCommandService.register(registrationRequestWithRole);
     }
 
 
@@ -74,6 +74,27 @@ public class UserFacadeImpl implements UserFacade {
                         view -> view,
                         (existing, replacement) -> existing
                 ));
+    }
+
+    @Override
+    public UUID createUser(RegistrationRequest request) {
+
+        return userCommandService.register(new RegistrationRequestWithRole(
+                request.email(),
+                request.userName(),
+                request.password(),
+                Role.USER
+        ));
+    }
+
+    @Override
+    public UUID createAdmin(RegistrationRequest request) {
+        return userCommandService.register(new RegistrationRequestWithRole(
+                request.email(),
+                request.userName(),
+                request.password(),
+                Role.ADMIN
+        ));
     }
 
 }

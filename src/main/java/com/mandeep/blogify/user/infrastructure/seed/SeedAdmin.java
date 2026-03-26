@@ -3,7 +3,7 @@ package com.mandeep.blogify.user.infrastructure.seed;
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.command.UserCommandService;
-import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
+import com.mandeep.blogify.user.application.dto.RegistrationRequestWithRole;
 import com.mandeep.blogify.user.application.query.UserQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +49,7 @@ public final class SeedAdmin implements ApplicationRunner {
         String hashedPassword = passwordEncoder.encode(password);
 
         try {
-            commandService.register(new UserRegistrationRequest(
+            commandService.register(new RegistrationRequestWithRole(
                     email, userName, hashedPassword, Role.ADMIN
             ));
             log.info("admin.signup.success email={}", email);

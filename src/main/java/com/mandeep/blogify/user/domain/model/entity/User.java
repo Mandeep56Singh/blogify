@@ -2,6 +2,7 @@ package com.mandeep.blogify.user.domain.model.entity;
 
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
+import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import lombok.Getter;
@@ -18,7 +19,7 @@ public class User {
     private final UserName userName;
     private final String password;
     private final Role role;
-    private final boolean active;
+    private boolean active;
     private final Instant createdAt;
 
 
@@ -79,6 +80,18 @@ public class User {
         return role == Role.ADMIN;
     }
 
+    public void deActivate(Role myRole) {
+
+        if (myRole == Role.USER || isAdmin()) {
+            throw UserDomainException.forbiddenToDeactivate();
+        }
+
+        if (!isActive()) {
+            return;
+        }
+
+        this.active = false;
+    }
 
     @Override
     public boolean equals(Object o) {

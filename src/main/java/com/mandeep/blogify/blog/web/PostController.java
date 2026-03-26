@@ -1,7 +1,5 @@
 package com.mandeep.blogify.blog.web;
 
-import com.mandeep.blogify.auth.AuthFacade;
-import com.mandeep.blogify.auth.AuthView;
 import com.mandeep.blogify.blog.application.command.PostCommandService;
 import com.mandeep.blogify.blog.application.dto.PostPageItemResponse;
 import com.mandeep.blogify.blog.application.dto.PostResponse;
@@ -10,6 +8,8 @@ import com.mandeep.blogify.blog.domain.exceptions.AccountException;
 import com.mandeep.blogify.blog.web.dto.PostWebRequest;
 import com.mandeep.blogify.blog.web.mapper.PostMapper;
 import com.mandeep.blogify.shared.AppUtils;
+import com.mandeep.blogify.shared.AuthView;
+import com.mandeep.blogify.shared.AuthenticationContext;
 import com.mandeep.blogify.shared.dto.PaginatedResponse;
 import com.mandeep.blogify.shared.dto.Response;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,7 +38,7 @@ class PostController {
     private final PostQueryService queryService;
     private final PostCommandService commandService;
     private final PostMapper postMapper;
-    private final AuthFacade authFacade;
+    private final AuthenticationContext authenticationContext;
 
     @Operation(
             summary = "Get paginated posts",
@@ -95,7 +95,7 @@ class PostController {
             @Parameter(description = "Post request payload", required = true)
             @RequestBody @Valid PostWebRequest webRequest
     ) {
-        UUID currentUserId = authFacade.getCurrentUserId().map(
+        UUID currentUserId = authenticationContext.getCurrentUserId().map(
                 AuthView::id
         ).orElseThrow(
                 AccountException::accountNotAuthenticated
@@ -125,7 +125,7 @@ class PostController {
             @Parameter(description = "Post request payload", required = true) @RequestBody @Valid PostWebRequest webRequest,
             @Parameter(description = "ID of the post to update") @PathVariable UUID id
     ) {
-        UUID currentUserId = authFacade.getCurrentUserId().map(
+        UUID currentUserId = authenticationContext.getCurrentUserId().map(
                 AuthView::id
         ).orElseThrow(
                 AccountException::accountNotAuthenticated
@@ -153,7 +153,7 @@ class PostController {
     public ResponseEntity<Response<PostResponse>> publishPost(
             @Parameter(description = "ID for the post to publish") @PathVariable UUID id
     ) {
-        UUID currentUserId = authFacade.getCurrentUserId().map(
+        UUID currentUserId = authenticationContext.getCurrentUserId().map(
                 AuthView::id
         ).orElseThrow(
                 AccountException::accountNotAuthenticated
@@ -178,7 +178,7 @@ class PostController {
     public ResponseEntity<Response<?>> deletePost(
             @Parameter(description = "ID of the post to delete") @PathVariable UUID id
     ) {
-        UUID currentUserId = authFacade.getCurrentUserId().map(
+        UUID currentUserId = authenticationContext.getCurrentUserId().map(
                 AuthView::id
         ).orElseThrow(
                 AccountException::accountNotAuthenticated

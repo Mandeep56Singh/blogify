@@ -1,17 +1,16 @@
 package com.mandeep.blogify.auth.application.command;
 
 import com.mandeep.blogify.auth.application.dto.*;
-import com.mandeep.blogify.auth.domain.exception.AuthDomainException;
 import com.mandeep.blogify.auth.domain.model.entity.AuthenticatedUser;
 import com.mandeep.blogify.auth.domain.model.valueObject.AuthUserId;
 import com.mandeep.blogify.auth.domain.model.valueObject.HashedPassword;
 import com.mandeep.blogify.auth.domain.model.valueObject.Password;
 import com.mandeep.blogify.auth.domain.repository.AuthRepository;
 import com.mandeep.blogify.auth.domain.repository.PasswordVerifier;
+import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.UserFacade;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +19,6 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuthCommandService {
 
     private final AuthRepository authRepository;
@@ -28,6 +26,14 @@ public class AuthCommandService {
     private final PasswordVerifier passwordVerifier;
     private final PasswordHasher passwordHasher;
     private final TokenProvider tokenProvider;
+
+    public AuthCommandService(AuthRepository authRepository, UserFacade userFacade, PasswordVerifier passwordVerifier, PasswordHasher passwordHasher, TokenProvider tokenProvider) {
+        this.authRepository = authRepository;
+        this.userFacade = userFacade;
+        this.passwordVerifier = passwordVerifier;
+        this.passwordHasher = passwordHasher;
+        this.tokenProvider = tokenProvider;
+    }
 
     @Transactional
     public LoginResponse signUp(SignUpRequest signUpRequest) {
@@ -60,13 +66,13 @@ public class AuthCommandService {
         try {
             email = new Email(loginRequest.email());
         } catch (Exception ex) {
-            throw AuthDomainException.invalidCredentials();
+            throw CommonException.invalidCredentials();
         }
 
         String password = loginRequest.password();
 
         AuthenticatedUser user = authRepository.findByEmail(email).orElseThrow(
-                AuthDomainException::invalidCredentials
+                CommonException::invalidCredentials
         );
 
         user.authenticate(password, passwordVerifier);

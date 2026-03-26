@@ -4,7 +4,6 @@ import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.infrastructure.persistence.entity.UserEntity;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,13 +31,8 @@ class UserJpaRepositoryIntegrationTest extends BaseIntegrationTest {
     private static final String EMAIL1 = "hyper@231gmail.com";
     private static final String USER_NAME1 = "user1";
 
-
     @Autowired
     private UserJpaRepository userJpaRepository;
-
-    @Autowired
-    private EntityManager entityManager;
-
 
     @BeforeEach
     void setup() {

@@ -1,7 +1,5 @@
 package com.mandeep.blogify.blog.web;
 
-import com.mandeep.blogify.auth.AuthFacade;
-import com.mandeep.blogify.auth.AuthView;
 import com.mandeep.blogify.blog.application.command.CategoryCommandService;
 import com.mandeep.blogify.blog.application.dto.CategoryRequest;
 import com.mandeep.blogify.blog.application.dto.CategoryResponse;
@@ -9,6 +7,8 @@ import com.mandeep.blogify.blog.application.query.CategoryQueryService;
 import com.mandeep.blogify.blog.web.dto.CategoryWebRequest;
 import com.mandeep.blogify.blog.web.mapper.CategoryMapper;
 import com.mandeep.blogify.shared.AppUtils;
+import com.mandeep.blogify.shared.AuthView;
+import com.mandeep.blogify.shared.AuthenticationContext;
 import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.dto.PaginatedResponse;
 import com.mandeep.blogify.shared.dto.Response;
@@ -41,7 +41,7 @@ class CategoryController {
     private final CategoryQueryService queryService;
     private final CategoryCommandService commandService;
     private final CategoryMapper categoryMapper;
-    private final AuthFacade authFacade;
+    private final AuthenticationContext authenticationContext;
 
     @Operation(summary = "Get paginated categories", description = "Retrieve a paginated list of categories")
     @ApiResponses({
@@ -81,7 +81,7 @@ class CategoryController {
             @RequestBody CategoryWebRequest webRequest
     ) {
 
-        AuthView authView = authFacade.getCurrentUserId().orElseThrow(
+        AuthView authView = authenticationContext.getCurrentUserId().orElseThrow(
                 CommonException::accountNotAuthenticated
         );
 
@@ -109,7 +109,7 @@ class CategoryController {
             @PathVariable UUID id
     ) {
 
-        AuthView authView = authFacade.getCurrentUserId().orElseThrow(
+        AuthView authView = authenticationContext.getCurrentUserId().orElseThrow(
                 CommonException::accountNotAuthenticated
         );
 
@@ -134,7 +134,7 @@ class CategoryController {
             @Parameter(description = "ID of the category to delete", required = true, example = "1")
             @PathVariable UUID id
     ) {
-        AuthView authView = authFacade.getCurrentUserId().orElseThrow(
+        AuthView authView = authenticationContext.getCurrentUserId().orElseThrow(
                 CommonException::accountNotAuthenticated
         );
         commandService.deleteCategory(id, authView.id());

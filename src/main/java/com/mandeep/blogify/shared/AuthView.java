@@ -1,4 +1,4 @@
-package com.mandeep.blogify.auth;
+package com.mandeep.blogify.shared;
 
 import java.util.UUID;
 

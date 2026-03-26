@@ -2,6 +2,7 @@ package com.mandeep.blogify.user.domain.model.entity;
 
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
+import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import java.time.ZoneOffset;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @DisplayName("User Entity")
@@ -97,6 +99,68 @@ class UserTest {
 
             // Act & Assert
             assertThat(user.isAdmin()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("Testing Deactivate method unit test")
+    class Deactivate {
+
+        @Test
+        @DisplayName("Should successfully deactivate a regular user when called by an ADMIN")
+        void should_DeactivateUser_When_TargetIsUserAndCallerIsAdmin() {
+            // Arrange
+            User targetUser = User.register(A_USER_ID, A_USERNAME, A_EMAIL, A_PASSWORD, Role.USER, A_FIXED_CLOCK);
+
+            // Act
+            targetUser.deActivate(Role.ADMIN);
+
+            // Assert
+            assertThat(targetUser.isActive()).isFalse();
+        }
+
+        @Test
+        @DisplayName("Should throw exception when a USER tries to deactivate someone")
+        void should_ThrowException_When_CallerIsUser() {
+            // Arrange
+            User targetUser = User.register(A_USER_ID, A_USERNAME, A_EMAIL, A_PASSWORD, Role.USER, A_FIXED_CLOCK);
+
+            // Act & Assert
+            assertThatThrownBy(() -> targetUser.deActivate(Role.USER))
+                    .isInstanceOf(UserDomainException.class)
+                    .extracting(ex -> ((UserDomainException) ex).getError())
+                    .isEqualTo(UserDomainException.forbiddenToDeactivate().getError());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when trying to deactivate an ADMIN (Immortal Rule)")
+        void should_ThrowException_When_TargetIsAdmin() {
+            // Arrange
+            User adminUser = User.register(A_USER_ID, A_USERNAME, A_EMAIL, A_PASSWORD, Role.ADMIN, A_FIXED_CLOCK);
+
+            // Act & Assert
+            assertThatThrownBy(() -> adminUser.deActivate(Role.ADMIN))
+                    .isInstanceOf(UserDomainException.class)
+                    .extracting(ex -> ((UserDomainException) ex).getError())
+                    .isEqualTo(UserDomainException.forbiddenToDeactivate().getError());
+        }
+
+        @Test
+        @DisplayName("Should do nothing (idempotent) when user is already inactive")
+        void should_DoNothing_When_UserIsAlreadyInactive() {
+            // Arrange
+            User inactiveUser = User.reconstitute(
+                    A_USER_ID, A_USERNAME, A_EMAIL, A_PASSWORD,
+                    false, // already inactive
+                    Role.USER, A_FIXED_INSTANT
+            );
+
+            // Act
+            inactiveUser.deActivate(Role.ADMIN);
+
+            // Assert
+            assertThat(inactiveUser.isActive()).isFalse();
+            // No exception was thrown
         }
     }
 

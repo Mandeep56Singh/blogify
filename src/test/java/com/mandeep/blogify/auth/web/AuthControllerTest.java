@@ -2,7 +2,6 @@ package com.mandeep.blogify.auth.web;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mandeep.blogify.auth.domain.exception.AuthDomainException;
 import com.mandeep.blogify.auth.infrastructure.security.RsaKeyProperties;
 import com.mandeep.blogify.auth.web.dto.LoginWebRequest;
 import com.mandeep.blogify.auth.web.dto.LoginWebResponse;
@@ -10,6 +9,7 @@ import com.mandeep.blogify.auth.web.dto.SignUpWebRequest;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.AppConstants;
 import com.mandeep.blogify.shared.AppUtils;
+import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.exception.DomainError;
 import com.mandeep.blogify.shared.domain.exception.enums.CommonError;
 import com.mandeep.blogify.shared.dto.Response;
@@ -182,7 +182,7 @@ class AuthControllerTest extends BaseIntegrationTest {
                     rawJson, new TypeReference<>() {}
             );
 
-            DomainError error = AuthDomainException.invalidCredentials().getError();
+            DomainError error = CommonException.invalidCredentials().getError();
 
             assertErrorResponse(response, login_url, error);
         }
@@ -205,7 +205,7 @@ class AuthControllerTest extends BaseIntegrationTest {
                     rawJson, new TypeReference<>() {}
             );
 
-            DomainError error = AuthDomainException.invalidCredentials().getError();
+            DomainError error = CommonException.invalidCredentials().getError();
 
             assertErrorResponse(response, login_url, error);
         }

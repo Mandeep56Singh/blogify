@@ -65,5 +65,11 @@ public class UserDomainException extends DomainException {
     }
     //endregion
 
+    public static UserDomainException forbiddenToDeactivate() {
+        return new UserDomainException(
+                UserDomainError.FORBIDDEN_TO_DEACTIVATE,
+                UserDomainError.FORBIDDEN_TO_DEACTIVATE.detail()
+        );
+    }
 
 }

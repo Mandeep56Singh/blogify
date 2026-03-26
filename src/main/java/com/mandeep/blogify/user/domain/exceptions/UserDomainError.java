@@ -58,6 +58,12 @@ public enum UserDomainError implements DomainError {
     ),
     //endregion
 
+    FORBIDDEN_TO_DEACTIVATE(
+            "Forbidden to de-activate account",
+            "Your current role is forbidden to de-activate target account",
+            DomainErrorType.FORBIDDEN,
+            "FORBIDDEN_TO_DEACTIVATE"
+    ),
 
     ;
     private final String title;

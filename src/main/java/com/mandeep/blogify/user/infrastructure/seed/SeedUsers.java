@@ -3,7 +3,7 @@ package com.mandeep.blogify.user.infrastructure.seed;
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.command.UserCommandService;
-import com.mandeep.blogify.user.application.dto.UserRegistrationRequest;
+import com.mandeep.blogify.user.application.dto.RegistrationRequestWithRole;
 import com.mandeep.blogify.user.application.query.UserQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ public final class SeedUsers implements ApplicationRunner {
             String email = userNamePrefix + i + emailSuffix;
             String userName = userNamePrefix + i;
             try {
-                userCommandService.register(new UserRegistrationRequest(
+                userCommandService.register(new RegistrationRequestWithRole(
                         email, userName, hashedPassword, Role.USER
                 ));
             } catch (Exception e) {

@@ -1,8 +1,12 @@
 package com.mandeep.blogify.user.ui;
 
+import com.jayway.jsonpath.JsonPath;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
-import com.mandeep.blogify.user.infrastructure.persistence.entity.UserEntity;
+import com.mandeep.blogify.user.application.command.UserCommandService;
+import com.mandeep.blogify.user.application.dto.RegistrationRequestWithRole;
+import com.mandeep.blogify.user.application.dto.UserResponse;
+import com.mandeep.blogify.user.application.query.UserQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -10,40 +14,46 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-class UserControllerFullTest extends BaseIntegrationTest {
+class UserControllerIntegrationTest extends BaseIntegrationTest {
 
-    private static final UUID USER_ID = UUID.randomUUID();
+    private UUID USER_ID;
     private static final String EMAIL = "user@example.com";
     private static final String USERNAME = "user123";
-    private static final String HASHED_PASSWORD = "hashed_password";
-    private static final Role ROLE = Role.USER;
+    private static final String PASSWORD = "StrongPassword@123";
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private UserCommandService userCommandService;
+
+    @Autowired
+    private UserQueryService userQueryService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     @BeforeEach
     void persistUser() {
 
-        UserEntity user = UserEntity.builder()
-                .id(USER_ID)
-                .email(EMAIL)
-                .userName(USERNAME)
-                .password(HASHED_PASSWORD)
-                .isActive(true)
-                .role(ROLE)
-                .build();
-
-        persist(user);
+        USER_ID = userCommandService.register(new RegistrationRequestWithRole(
+                EMAIL,
+                USERNAME,
+                PASSWORD,
+                Role.USER
+        ));
     }
 
     @Nested
@@ -144,4 +154,61 @@ class UserControllerFullTest extends BaseIntegrationTest {
                     .andExpect(status().isNotFound());
         }
     }
+
+    @Nested
+    @DisplayName("PATCH /api/v1/users/username")
+    class DeActivateUser {
+
+        private String getAuthTokenViaHttp(String email) throws Exception {
+            String loginPayload = """
+                    {
+                        "email": "%s",
+                        "password": "%s"
+                    }
+                    """.formatted(email, UserControllerIntegrationTest.PASSWORD);
+
+            String responseJson = mockMvc.perform(post("/api/v1/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(loginPayload))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString();
+
+            return JsonPath.read(responseJson, "$.data.token");
+        }
+
+        @DisplayName("Returns 200 when admin tries to de-activate user")
+        @Test
+        void should_Return200_When_TargetRoleIsUser() throws Exception {
+
+            // create admin
+            String adminEmail = "admin@blogify.com";
+            String adminUserName = "admin123";
+
+
+            userCommandService.register(new RegistrationRequestWithRole(
+                    adminEmail,
+                    adminUserName,
+                    passwordEncoder.encode(PASSWORD),
+                    Role.ADMIN
+            ));
+
+            String token = getAuthTokenViaHttp(adminEmail);
+
+            assertThat(token).isNotNull();
+            assertThat(token).isNotBlank();
+
+            mockMvc.perform(
+                    patch("/api/v1/users/{id}/deactivate", USER_ID)
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+
+            ).andExpect(status().isOk());
+
+            UserResponse updatedUser = userQueryService.getUserById(USER_ID);
+            assertThat(updatedUser.isActive()).isFalse();
+
+        }
+    }
+
+
 }

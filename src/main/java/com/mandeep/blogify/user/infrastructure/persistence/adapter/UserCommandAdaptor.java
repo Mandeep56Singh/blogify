@@ -5,6 +5,7 @@ import com.mandeep.blogify.user.domain.model.entity.User;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
 import com.mandeep.blogify.user.domain.repository.UserRepository;
+import com.mandeep.blogify.user.infrastructure.persistence.entity.UserEntity;
 import com.mandeep.blogify.user.infrastructure.persistence.mapper.UserEntityMapper;
 import com.mandeep.blogify.user.infrastructure.persistence.repository.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,17 @@ public class UserCommandAdaptor implements UserRepository {
 
     @Override
     public void save(User user) {
+        UserEntity userEntity = userJpaRepository.findById(user.getUserId().value())
+                        .map(existingUser -> {
+                            existingUser.setUserName(user.getUserName().value());
+                            existingUser.setEmail(user.getEmail().value());
+                            existingUser.setPassword(user.getPassword());
+                            existingUser.setActive(user.isActive());
+                            return existingUser;
+                        })
+                                .orElseGet(() -> userEntityMapper.toEntity(user));
 
-        userJpaRepository.save(userEntityMapper.toEntity(user));
+        userJpaRepository.save(userEntity);
     }
 
     @Override

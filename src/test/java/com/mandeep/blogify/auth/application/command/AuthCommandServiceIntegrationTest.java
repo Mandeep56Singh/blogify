@@ -3,7 +3,6 @@ package com.mandeep.blogify.auth.application.command;
 import com.mandeep.blogify.auth.application.dto.LoginRequest;
 import com.mandeep.blogify.auth.application.dto.LoginResponse;
 import com.mandeep.blogify.auth.application.dto.SignUpRequest;
-import com.mandeep.blogify.auth.domain.exception.AuthDomainException;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.exception.DomainError;
@@ -19,7 +18,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 
-class AuthCommandServiceTest extends BaseIntegrationTest {
+class AuthCommandServiceIntegrationTest extends BaseIntegrationTest {
 
 
     @Autowired
@@ -140,11 +139,11 @@ class AuthCommandServiceTest extends BaseIntegrationTest {
         void should_ThrowInvalidCredentials_When_EmailFormatIsInvalid(String invalidEmail) {
             // Arrange
             LoginRequest loginRequest = new LoginRequest(invalidEmail, "SomePassword123!");
-            DomainError genericError = AuthDomainException.invalidCredentials().getError();
+            DomainError genericError = CommonException.invalidCredentials().getError();
 
             // Act
-            AuthDomainException ex = catchThrowableOfType(
-                    AuthDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> authCommandService.login(loginRequest)
             );
 
@@ -162,10 +161,10 @@ class AuthCommandServiceTest extends BaseIntegrationTest {
 
             LoginRequest wrongPasswordRequest = new LoginRequest(signUpRequest.email(), "Wrong_Password_123");
 
-            DomainError passwordError = AuthDomainException.invalidCredentials().getError();
+            DomainError passwordError = CommonException.invalidCredentials().getError();
 
-            AuthDomainException ex = catchThrowableOfType(
-                    AuthDomainException.class,
+            CommonException ex = catchThrowableOfType(
+                    CommonException.class,
                     () -> authCommandService.login(wrongPasswordRequest)
             );
 
@@ -180,7 +179,7 @@ class AuthCommandServiceTest extends BaseIntegrationTest {
 
             // Act & Assert
             assertThatThrownBy(() -> authCommandService.login(nonExistentRequest))
-                    .isInstanceOf(AuthDomainException.class);
+                    .isInstanceOf(CommonException.class);
         }
     }
 }
