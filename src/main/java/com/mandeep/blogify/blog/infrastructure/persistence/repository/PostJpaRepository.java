@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,4 +43,10 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, UUID> {
                 WHERE p.id IN :ids
             """)
     List<PostEntity> findPostsWithCategoriesByIds(@Param("ids") List<UUID> ids);
+
+    @Query("""
+            SELECT p.id FROM PostEntity p WHERE p.status = :status
+            """
+    )
+    Optional<PostEntity> findPostByStatus(@Param("id") UUID id, @Param("status") PostStatus status);
 }

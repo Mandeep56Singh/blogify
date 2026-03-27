@@ -3,7 +3,7 @@ package com.mandeep.blogify.user.application.command;
 
 import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
-import com.mandeep.blogify.user.application.dto.RegistrationRequestWithRole;
+import com.mandeep.blogify.user.application.dto.RegistrationRequest;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
 import com.mandeep.blogify.user.domain.model.entity.User;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
@@ -30,20 +30,20 @@ public class UserCommandService {
 
 
     @Transactional
-    public UUID register(RegistrationRequestWithRole registrationRequestWithRole) {
+    public UUID register(RegistrationRequest registrationRequest) {
 
         log.debug("register.attempt email='{}' username='{}' role='{}'",
-                registrationRequestWithRole.email(),
-                registrationRequestWithRole.userName(),
-                registrationRequestWithRole.role());
+                registrationRequest.email(),
+                registrationRequest.userName(),
+                registrationRequest.role());
 
-        Email userEmail = new Email(registrationRequestWithRole.email());
+        Email userEmail = new Email(registrationRequest.email());
 
         if (userRepository.existsByEmail(userEmail)) {
             throw CommonException.emailAlreadyExists(userEmail);
         }
 
-        UserName name = new UserName(registrationRequestWithRole.userName());
+        UserName name = new UserName(registrationRequest.userName());
 
         if (userRepository.existsByUserName(name)) {
             throw CommonException.usernameAlreadyExists(name.value());
@@ -52,14 +52,14 @@ public class UserCommandService {
 
         UserId id = userIdentityGenerator.nextUserId();
 
-        String password = registrationRequestWithRole.password();
+        String password = registrationRequest.password();
 
         User user = User.register(
                 id,
                 name,
                 userEmail,
                 password,
-                registrationRequestWithRole.role(),
+                registrationRequest.role(),
                 this.clock
         );
         userRepository.save(user);
@@ -73,25 +73,25 @@ public class UserCommandService {
         return user.getUserId().value();
     }
 
-    public void deActiveUser(UUID actorId, UUID targetId) {
+    public void deActiveUser(UUID targetUserId, UUID adminId) {
 
-        log.debug("user.deactivate.attempt id={} requestedBy={}", targetId, actorId);
+        log.debug("user.deactivate.attempt id={} requestedBy={}", targetUserId, adminId);
 
-        UserId actorIdVO = new UserId(actorId);
-        User actor = userRepository.findById(actorIdVO).orElseThrow(
-                () -> UserDomainException.userNotFound(actorIdVO)
+        UserId adminIdVO = new UserId(adminId);
+        User admin = userRepository.findById(adminIdVO).orElseThrow(
+                () -> UserDomainException.userNotFound(adminIdVO)
         );
 
-        UserId targetUserId = new UserId(targetId);
-        User targetUser = userRepository.findById(targetUserId).orElseThrow(
-                () -> UserDomainException.userNotFound(targetUserId)
+        UserId userId = new UserId(targetUserId);
+        User targetUser = userRepository.findById(userId).orElseThrow(
+                () -> UserDomainException.userNotFound(userId)
         );
 
-        targetUser.deActivate(actor.getRole());
+        targetUser.deActivate(admin.getRole());
 
         userRepository.save(targetUser);
 
-        log.info("user.deactivated id={} deActivatedBy={}", targetId, actorId);
+        log.info("user.deactivated id={} deActivatedBy={}", targetUserId, adminId);
     }
 
 }

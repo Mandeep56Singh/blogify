@@ -47,8 +47,6 @@ class CategoryController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Categories retrieved successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid pagination parameters"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @GetMapping
     public ResponseEntity<Response<PaginatedResponse<CategoryResponse>>> getAllCategories(

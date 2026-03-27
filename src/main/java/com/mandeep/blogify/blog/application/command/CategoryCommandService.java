@@ -11,6 +11,7 @@ import com.mandeep.blogify.blog.domain.model.valueObject.CategoryTitle;
 import com.mandeep.blogify.blog.domain.model.valueObject.UserId;
 import com.mandeep.blogify.blog.domain.repository.BlogIdGenerator;
 import com.mandeep.blogify.blog.domain.repository.CategoryRepository;
+import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.UserFacade;
 import com.mandeep.blogify.user.UserView;
@@ -99,12 +100,12 @@ public class CategoryCommandService {
     }
 
     @Transactional
-    public void deleteCategory(UUID targetCategoryId, UUID targetUserId) {
+    public void deleteCategory(UUID targetCategoryId, UUID adminId) {
 
         log.debug("category.delete.attempt id={} requestedBy={}",
-                targetCategoryId, targetUserId);
+                targetCategoryId, adminId);
 
-        UserId userId = new UserId(targetUserId);
+        UserId userId = new UserId(adminId);
         CategoryId categoryId = new CategoryId(targetCategoryId);
 
         validateAdmin(userId);
@@ -130,7 +131,7 @@ public class CategoryCommandService {
         }
 
         if (userView.role() != Role.ADMIN) {
-            throw AccountException.unauthorized();
+            throw CommonException.accessDenied();
         }
 
     }

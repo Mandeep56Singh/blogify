@@ -5,7 +5,7 @@ import com.mandeep.blogify.blog.domain.model.valueObject.PostStatus;
 import com.mandeep.blogify.blog.infrastructure.persistence.entity.CategoryEntity;
 import com.mandeep.blogify.blog.infrastructure.persistence.entity.PostEntity;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
-import com.mandeep.blogify.shared.domain.model.valueObject.Role;
+import com.mandeep.blogify.user.UserFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,8 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -28,27 +26,15 @@ class PostJpaRepositoryIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PostJpaRepository postRepository;
 
+    @Autowired
+    private UserFacade userFacade;
+
     private UUID authorId;
     // Helper to persist data for repository tests
 
     @BeforeEach
     public void persistUser() {
-        UUID userId = UUID.randomUUID();
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        jdbcTemplate.update("""
-                        INSERT INTO users (id, email, user_name, password, is_active, role, created_at, last_modified_at, version)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """,
-                userId,
-                userId + "@blogify.com",
-                "user_" + userId.toString().substring(0, 8),
-                "HashedPass@123",
-                true,
-                Role.USER.name(),
-                now, now, 0L
-        );
-
-        authorId = userId;
+        authorId = userFacade.createUser("user@blogify.com", "user123", "Strong@123");
     }
 
     private PostEntity createPost(UUID authorId, String slug, PostStatus status, Set<CategoryEntity> categories) {

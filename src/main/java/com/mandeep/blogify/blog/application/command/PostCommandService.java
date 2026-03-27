@@ -99,7 +99,7 @@ public class PostCommandService {
         );
 
         if (!post.getAuthorId().equals(userId) && author.role() != Role.ADMIN) {
-            throw PostException.unauthorized("You are not authorized to edit this post");
+            throw CommonException.accessDenied("You are not authorized to edit this post");
         }
 
         PostTitle newTitle = new PostTitle(postRequest.title());
@@ -141,7 +141,7 @@ public class PostCommandService {
         );
 
         if (!post.getAuthorId().equals(postAuthorId) && author.role() != Role.ADMIN) {
-            throw PostException.unauthorized("You are not authorized to delete this post");
+            throw CommonException.accessDenied("You are not authorized to edit this post");
         }
 
         post.delete();

@@ -5,7 +5,7 @@ import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.UserFacade;
 import com.mandeep.blogify.user.UserView;
 import com.mandeep.blogify.user.application.command.UserCommandService;
-import com.mandeep.blogify.user.application.dto.RegistrationRequestWithRole;
+import com.mandeep.blogify.user.application.dto.RegistrationRequest;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.application.query.UserQueryRepository;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
@@ -27,13 +27,13 @@ public class UserFacadeImpl implements UserFacade {
     @Override
     @Transactional
     public UUID register(String email, String userName, String password, Role role) {
-        RegistrationRequestWithRole registrationRequestWithRole = new RegistrationRequestWithRole(
+        RegistrationRequest registrationRequest = new RegistrationRequest(
                 email,
                 userName,
                 password,
                 role
         );
-        return userCommandService.register(registrationRequestWithRole);
+        return userCommandService.register(registrationRequest);
     }
 
 
@@ -77,24 +77,29 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public UUID createUser(RegistrationRequest request) {
+    public UUID createUser(String email, String userName, String password) {
 
-        return userCommandService.register(new RegistrationRequestWithRole(
-                request.email(),
-                request.userName(),
-                request.password(),
+        return userCommandService.register(new RegistrationRequest(
+                email,
+                userName,
+                password,
                 Role.USER
         ));
     }
 
     @Override
-    public UUID createAdmin(RegistrationRequest request) {
-        return userCommandService.register(new RegistrationRequestWithRole(
-                request.email(),
-                request.userName(),
-                request.password(),
+    public UUID createAdmin(String email, String userName, String password) {
+        return userCommandService.register(new RegistrationRequest(
+                email,
+                userName,
+                password,
                 Role.ADMIN
         ));
+    }
+
+    @Override
+    public void deactivateUser(UUID userId, UUID adminId) {
+        userCommandService.deActiveUser(userId, adminId);
     }
 
 }

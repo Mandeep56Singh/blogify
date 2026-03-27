@@ -1,10 +1,9 @@
 package com.mandeep.blogify.user.ui;
 
-import com.jayway.jsonpath.JsonPath;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.user.application.command.UserCommandService;
-import com.mandeep.blogify.user.application.dto.RegistrationRequestWithRole;
+import com.mandeep.blogify.user.application.dto.RegistrationRequest;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.application.query.UserQueryService;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,8 +18,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static com.mandeep.blogify.shared.utils.TestUtils.getAuthTokenViaHttp;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,7 +49,7 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     @BeforeEach
     void persistUser() {
 
-        USER_ID = userCommandService.register(new RegistrationRequestWithRole(
+        USER_ID = userCommandService.register(new RegistrationRequest(
                 EMAIL,
                 USERNAME,
                 PASSWORD,
@@ -159,22 +160,6 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("PATCH /api/v1/users/username")
     class DeActivateUser {
 
-        private String getAuthTokenViaHttp(String email) throws Exception {
-            String loginPayload = """
-                    {
-                        "email": "%s",
-                        "password": "%s"
-                    }
-                    """.formatted(email, UserControllerIntegrationTest.PASSWORD);
-
-            String responseJson = mockMvc.perform(post("/api/v1/auth/login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(loginPayload))
-                    .andExpect(status().isOk())
-                    .andReturn().getResponse().getContentAsString();
-
-            return JsonPath.read(responseJson, "$.data.token");
-        }
 
         @DisplayName("Returns 200 when admin tries to de-activate user")
         @Test
@@ -185,14 +170,14 @@ class UserControllerIntegrationTest extends BaseIntegrationTest {
             String adminUserName = "admin123";
 
 
-            userCommandService.register(new RegistrationRequestWithRole(
+            userCommandService.register(new RegistrationRequest(
                     adminEmail,
                     adminUserName,
                     passwordEncoder.encode(PASSWORD),
                     Role.ADMIN
             ));
 
-            String token = getAuthTokenViaHttp(adminEmail);
+            String token = getAuthTokenViaHttp(adminEmail, PASSWORD, mockMvc);
 
             assertThat(token).isNotNull();
             assertThat(token).isNotBlank();

@@ -36,4 +36,5 @@ public class AccountException extends DomainException {
                 AccountError.ACCOUNT_NOT_AUTHENTICATED.detail()
         );
     }
+
 }

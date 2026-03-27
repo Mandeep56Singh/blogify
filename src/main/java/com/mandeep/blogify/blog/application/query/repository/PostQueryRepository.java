@@ -10,6 +10,8 @@ import java.util.UUID;
 public interface PostQueryRepository {
     Optional<PostData> findById(UUID id);
 
+    Optional<PostData> findPublishedPostById(UUID id);
+
     PaginatedResponse<PostPageItemData> findAllPublished(int pageNumber, int pageSize);
 
     boolean existsBySlug(String slug);

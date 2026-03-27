@@ -1,12 +1,14 @@
 package com.mandeep.blogify.blog.application.query;
 
+import com.mandeep.blogify.blog.application.command.CategoryCommandService;
+import com.mandeep.blogify.blog.application.dto.CategoryRequest;
 import com.mandeep.blogify.blog.application.dto.CategoryResponse;
 import com.mandeep.blogify.blog.domain.exceptions.CategoryException;
 import com.mandeep.blogify.blog.domain.model.valueObject.CategoryId;
-import com.mandeep.blogify.blog.domain.model.valueObject.CategoryStatus;
-import com.mandeep.blogify.blog.infrastructure.persistence.entity.CategoryEntity;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.dto.PaginatedResponse;
+import com.mandeep.blogify.user.UserFacade;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,16 +26,27 @@ class CategoryQueryServiceIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private CategoryQueryService categoryQueryService;
 
+    @Autowired
+    private CategoryCommandService categoryCommandService;
+
+    @Autowired
+    private UserFacade userFacade;
+
+    private UUID adminId;
+
     //region Helper Methods
-    private CategoryEntity persistCategory(String title, CategoryStatus status) {
-        CategoryEntity category = CategoryEntity.builder()
-                .id(UUID.randomUUID())
-                .title(title)
-                .description("Description for " + title)
-                .status(status)
-                .build();
-        persist(category);
-        return category;
+
+    @BeforeEach
+    public void persistAdmin() {
+        adminId = userFacade.createAdmin("admin@blogify.com", "admin", "Strong@123");
+    }
+
+    private UUID persistCategory(String title, UUID adminId) {
+        return categoryCommandService.createCategory(new CategoryRequest(
+                title,
+                "description",
+                adminId
+        ));
     }
     //endregion
 
@@ -44,8 +57,8 @@ class CategoryQueryServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Successfully returns paginated list of all active categories")
         void should_ReturnAllActiveCategories() {
-            persistCategory("Java", CategoryStatus.ACTIVE);
-            persistCategory("Spring", CategoryStatus.ACTIVE);
+            persistCategory("Java", adminId);
+            persistCategory("Spring", adminId);
 
             PaginatedResponse<CategoryResponse> response = categoryQueryService.getAllCategories(0, 10);
 
@@ -56,8 +69,10 @@ class CategoryQueryServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Filters out ARCHIVED categories and only returns ACTIVE ones")
         void should_FilterOutArchivedCategories() {
-            persistCategory("Active Cat", CategoryStatus.ACTIVE);
-            persistCategory("Archived Cat", CategoryStatus.ARCHIVED);
+            persistCategory("Active Cat", adminId);
+
+            UUID categoryId = persistCategory("Archived Cat", adminId);
+            categoryCommandService.deleteCategory(categoryId, adminId);
 
             PaginatedResponse<CategoryResponse> response = categoryQueryService.getAllCategories(0, 10);
 
@@ -68,8 +83,12 @@ class CategoryQueryServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Returns empty response when all categories are archived")
         void should_ReturnEmpty_WhenAllAreArchived() {
-            persistCategory("Archived 1", CategoryStatus.ARCHIVED);
-            persistCategory("Archived 2", CategoryStatus.ARCHIVED);
+            UUID categoryId1 = persistCategory("Archived 1", adminId);
+            UUID categoryId2 = persistCategory("Archived 2", adminId);
+
+            categoryCommandService.deleteCategory(categoryId1, adminId);
+            categoryCommandService.deleteCategory(categoryId2, adminId);
+
 
             PaginatedResponse<CategoryResponse> response = categoryQueryService.getAllCategories(0, 10);
 
@@ -87,8 +106,8 @@ class CategoryQueryServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Verifies pagination metadata on boundary")
         void should_VerifyPaginationMetadata() {
-            persistCategory("Cat 1", CategoryStatus.ACTIVE);
-            persistCategory("Cat 2", CategoryStatus.ACTIVE);
+            persistCategory("Cat 1", adminId);
+            persistCategory("Cat 2", adminId);
 
             PaginatedResponse<CategoryResponse> response = categoryQueryService.getAllCategories(0, 1);
 
@@ -103,7 +122,7 @@ class CategoryQueryServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Returns empty items when requested page is out of bounds")
         void should_ReturnEmpty_WhenPageOutOfBounds() {
-            persistCategory("Cat 1", CategoryStatus.ACTIVE);
+            persistCategory("Cat 1", adminId);
 
             PaginatedResponse<CategoryResponse> response = categoryQueryService.getAllCategories(5, 10);
 
@@ -119,9 +138,9 @@ class CategoryQueryServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Successfully returns category details for valid active category")
         void should_ReturnCategory_WhenIdIsValid() {
-            CategoryEntity category = persistCategory("Java", CategoryStatus.ACTIVE);
+            UUID categoryId = persistCategory("Java", adminId);
 
-            CategoryResponse response = categoryQueryService.getCategoryById(category.getId());
+            CategoryResponse response = categoryQueryService.getCategoryById(categoryId);
 
             assertThat(response.title()).isEqualTo("Java");
         }
@@ -140,13 +159,14 @@ class CategoryQueryServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws CategoryException when category is archived")
         void should_ThrowException_WhenCategoryIsArchived() {
-            CategoryEntity archivedCat = persistCategory("Hidden", CategoryStatus.ARCHIVED);
+            UUID categoryId = persistCategory("Hidden", adminId);
+            categoryCommandService.deleteCategory(categoryId, adminId);
 
             // Note: This test assumes your CategoryQueryRepository filters by status = ACTIVE
-            assertThatThrownBy(() -> categoryQueryService.getCategoryById(archivedCat.getId()))
+            assertThatThrownBy(() -> categoryQueryService.getCategoryById(categoryId))
                     .isInstanceOf(CategoryException.class)
                     .extracting(ex -> ((CategoryException) ex).getError())
-                    .isEqualTo(CategoryException.categoryNotFound(new CategoryId(archivedCat.getId())).getError());
+                    .isEqualTo(CategoryException.categoryNotFound(new CategoryId(categoryId)).getError());
         }
     }
 }

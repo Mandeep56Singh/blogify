@@ -1,25 +1,24 @@
 package com.mandeep.blogify.blog.application.query;
 
+import com.mandeep.blogify.blog.application.command.CategoryCommandService;
+import com.mandeep.blogify.blog.application.command.PostCommandService;
+import com.mandeep.blogify.blog.application.dto.CategoryRequest;
 import com.mandeep.blogify.blog.application.dto.PostPageItemResponse;
+import com.mandeep.blogify.blog.application.dto.PostRequest;
 import com.mandeep.blogify.blog.application.dto.PostResponse;
 import com.mandeep.blogify.blog.domain.exceptions.PostException;
-import com.mandeep.blogify.blog.domain.model.valueObject.CategoryStatus;
 import com.mandeep.blogify.blog.domain.model.valueObject.PostId;
 import com.mandeep.blogify.blog.domain.model.valueObject.PostStatus;
-import com.mandeep.blogify.blog.infrastructure.persistence.entity.CategoryEntity;
-import com.mandeep.blogify.blog.infrastructure.persistence.entity.PostEntity;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
-import com.mandeep.blogify.shared.domain.model.valueObject.Role;
 import com.mandeep.blogify.shared.dto.PaginatedResponse;
+import com.mandeep.blogify.user.UserFacade;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,66 +31,46 @@ class PostQueryServiceIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PostQueryService postQueryService;
 
+    @Autowired
+    private PostCommandService postCommandService;
+
+    @Autowired
+    private CategoryCommandService categoryCommandService;
+
+    @Autowired
+    private UserFacade userFacade;
+
     //region Test Data
-    private static final UUID AUTHOR_ID = UUID.fromString("019d0253-ef34-7361-ba13-0516d43c4a11");
-    private static final String AUTHOR_USERNAME = "john doe";
+    private UUID AUTHOR_ID;
+    private UUID CATEGORY_ID;
+    private static final String AUTHOR_USERNAME = "john_doe";
+    private static final String CATEGORY_TITLE = "Java";
     // Must be >= 100 characters to pass the DB CHECK constraint
     private static final String VALID_CONTENT = "A".repeat(100);
     //endregion
 
-    //region Helper Methods
-
-    private void persistUser() {
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        jdbcTemplate.update("""
-                INSERT INTO users (id, email, user_name, password, is_active, role, created_at, last_modified_at, version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT (id) DO NOTHING
-                """,
-                AUTHOR_ID,
-                AUTHOR_USERNAME + "@blogify.com",
-                AUTHOR_USERNAME,
-                "HashedPass@123",
-                true,
-                Role.USER.name(),
-                now, now, 0L
-        );
+    @BeforeEach
+    public void setup() {
+        AUTHOR_ID = userFacade.createUser("user@blogify.com", AUTHOR_USERNAME, "Strong@123");
+        CATEGORY_ID = categoryCommandService.createCategory(new CategoryRequest(
+                CATEGORY_TITLE,
+                "description",
+                userFacade.createAdmin("admin@blogify.com", "admin123", "Strong@123")
+        ));
     }
 
-    private CategoryEntity persistCategory(String title) {
-        CategoryEntity category = CategoryEntity.builder()
-                .id(UUID.randomUUID())
-                .title(title)
-                .description("Description for " + title)
-                .status(CategoryStatus.ACTIVE)
-                .build();
-        persist(category);
-        return category;
-    }
 
-    private UUID persistPost(UUID authorId, String title, String slug, PostStatus status, Set<CategoryEntity> categories) {
-        return persistPost(authorId, title, slug, status, categories, Instant.now());
-    }
+    private UUID persistPost(String title) {
 
-    private UUID persistPost(UUID authorId, String title, String slug, PostStatus status, Set<CategoryEntity> categories, Instant publishedAt) {
-        PostEntity post = PostEntity.builder()
-                .id(UUID.randomUUID())
-                .title(title)
-                .slug(slug)
-                .content(VALID_CONTENT)
-                .authorId(authorId)
-                .categories(categories)
-                .status(status)
-                .publishAt(status == PostStatus.PUBLISHED ? publishedAt : null)
-                .build();
-        persist(post);
-        return post.getId();
+        return postCommandService.createPost(new PostRequest(
+                title,
+                VALID_CONTENT,
+                List.of(CATEGORY_ID),
+                AUTHOR_ID
+        ));
     }
     //endregion
 
-    // -------------------------------------------------------------------------
-    // Get Post By Id
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("getPostById()")
@@ -101,9 +80,9 @@ class PostQueryServiceIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Successfully retrieves and maps an existing post with valid author data")
         void should_ReturnPostResponse_When_PostAndAuthorExist() {
             // Arrange
-            persistUser();
-            CategoryEntity category = persistCategory("Java Programming");
-            UUID postId = persistPost(AUTHOR_ID, "Mastering Java", "mastering-java", PostStatus.PUBLISHED, Set.of(category));
+
+            UUID postId = persistPost("Mastering Java");
+            postCommandService.publishPost(postId, AUTHOR_ID);
 
             // Act
             PostResponse response = postQueryService.getPostById(postId);
@@ -119,7 +98,7 @@ class PostQueryServiceIntegrationTest extends BaseIntegrationTest {
                     () -> assertThat(response.authorData().id()).isEqualTo(AUTHOR_ID),
                     () -> assertThat(response.authorData().userName()).isEqualTo(AUTHOR_USERNAME),
                     () -> assertThat(response.categories()).hasSize(1),
-                    () -> assertThat(response.categories().iterator().next().title()).isEqualTo("Java Programming"),
+                    () -> assertThat(response.categories().iterator().next().title()).isEqualTo(CATEGORY_TITLE),
                     () -> assertThat(response.publishedAt()).isNotNull()
             );
 
@@ -129,10 +108,9 @@ class PostQueryServiceIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Successfully retrieves a post regardless of its status (DRAFT/ARCHIVED)")
         void should_ReturnPostResponse_When_PostIsDraftOrArchived() {
             // Arrange
-            persistUser();
-            CategoryEntity category = persistCategory("Spring Boot");
-            UUID draftPostId = persistPost(AUTHOR_ID, "Draft Post", "draft-post", PostStatus.DRAFT, Set.of(category));
-            UUID archivedPostId = persistPost(AUTHOR_ID, "Archived Post", "archived-post", PostStatus.ARCHIVED, Set.of(category));
+            UUID draftPostId = persistPost("Draft Post");
+            UUID archivedPostId = persistPost("Archived Post");
+            postCommandService.deletePost(archivedPostId, AUTHOR_ID);
 
             // Act & Assert
             PostResponse draftResponse = postQueryService.getPostById(draftPostId);
@@ -168,13 +146,16 @@ class PostQueryServiceIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Successfully returns paginated data with correctly mapped authors")
         void should_ReturnPaginatedPublishedPosts() {
             // Arrange
-            persistUser();
-            CategoryEntity category = persistCategory("Cloud Computing");
 
             // Persist 3 published posts
-            persistPost(AUTHOR_ID, "Post Title 1", "post-1", PostStatus.PUBLISHED, Set.of(category));
-            persistPost(AUTHOR_ID, "Post Title 2", "post-2", PostStatus.PUBLISHED, Set.of(category));
-            persistPost(AUTHOR_ID, "Post Title 3", "post-3", PostStatus.PUBLISHED, Set.of(category));
+            UUID postId1 = persistPost("Post Title 1");
+            UUID postId2 = persistPost("Post Title 2");
+            UUID postId3 = persistPost("Post Title 3");
+
+            postCommandService.publishPost(postId1, AUTHOR_ID);
+            postCommandService.publishPost(postId2, AUTHOR_ID);
+            postCommandService.publishPost(postId3, AUTHOR_ID);
+
 
             // Act - Fetch page 0, size 2
             PaginatedResponse<PostPageItemResponse> pageZero = postQueryService.getAllPublishedPosts(0, 2);
@@ -213,13 +194,15 @@ class PostQueryServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Strictly excludes DRAFT and ARCHIVED posts from the results")
         void should_ExcludeDraftAndArchivedPosts() {
-            // Arrange
-            persistUser();
-            CategoryEntity category = persistCategory("Testing");
+            // Arrange;
 
-            persistPost(AUTHOR_ID, "Published Post", "pub-1", PostStatus.PUBLISHED, Set.of(category));
-            persistPost(AUTHOR_ID, "Draft Post", "draft-1", PostStatus.DRAFT, Set.of(category));
-            persistPost(AUTHOR_ID, "Archived Post", "arch-1", PostStatus.ARCHIVED, Set.of(category));
+            UUID publishedPostId = persistPost("Published Post");
+            postCommandService.publishPost(publishedPostId, AUTHOR_ID);
+
+            persistPost("Draft Post");
+
+            UUID archivedPostId = persistPost("Archived Post");
+            postCommandService.deletePost(archivedPostId, AUTHOR_ID);
 
             // Act
             PaginatedResponse<PostPageItemResponse> response = postQueryService.getAllPublishedPosts(0, 10);
@@ -234,11 +217,9 @@ class PostQueryServiceIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Returns empty paginated response when no published posts exist")
         void should_ReturnEmptyResponse_When_NoPublishedPostsExist() {
             // Arrange
-            persistUser();
-            CategoryEntity category = persistCategory("Empty Test");
 
             // Only DRAFT post exists, no PUBLISHED
-            persistPost(AUTHOR_ID, "Only Draft", "only-draft", PostStatus.DRAFT, Set.of(category));
+            persistPost("Only Draft Post");
 
             // Act
             PaginatedResponse<PostPageItemResponse> response = postQueryService.getAllPublishedPosts(0, 10);
@@ -256,11 +237,9 @@ class PostQueryServiceIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Returns empty items array when requested page exceeds total pages")
         void should_ReturnEmptyItems_When_PageOutOfBounds() {
             // Arrange
-            persistUser();
-            CategoryEntity category = persistCategory("Bounds Test");
 
             // 1 Post exists (so there is exactly 1 page of size 10: page 0)
-            persistPost(AUTHOR_ID, "Valid Post", "valid-post", PostStatus.PUBLISHED, Set.of(category));
+            persistPost("Valid Post");
 
             // Act - Fetch page 1 (which is the 2nd page)
             PaginatedResponse<PostPageItemResponse> response = postQueryService.getAllPublishedPosts(1, 10);

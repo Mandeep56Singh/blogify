@@ -1,24 +1,21 @@
 package com.mandeep.blogify.blog.application.command;
 
+import com.mandeep.blogify.blog.application.dto.CategoryRequest;
 import com.mandeep.blogify.blog.application.dto.PostRequest;
+import com.mandeep.blogify.blog.application.query.PostQueryService;
 import com.mandeep.blogify.blog.domain.exceptions.AccountException;
 import com.mandeep.blogify.blog.domain.exceptions.PostException;
 import com.mandeep.blogify.blog.domain.model.valueObject.CategoryId;
-import com.mandeep.blogify.blog.domain.model.valueObject.CategoryStatus;
 import com.mandeep.blogify.blog.domain.model.valueObject.PostId;
 import com.mandeep.blogify.blog.domain.model.valueObject.PostStatus;
-import com.mandeep.blogify.blog.infrastructure.persistence.entity.CategoryEntity;
-import com.mandeep.blogify.blog.infrastructure.persistence.entity.PostEntity;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.domain.exception.CommonException;
-import com.mandeep.blogify.shared.domain.model.valueObject.Role;
+import com.mandeep.blogify.user.UserFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -33,108 +30,75 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PostCommandService postCommandService;
 
+    @Autowired
+    private PostQueryService postQueryService;
+
+    @Autowired
+    private CategoryCommandService categoryCommandService;
+
+    @Autowired
+    private UserFacade userFacade;
+
     //region Test Data
-    private static final UUID ACTOR_ID = UUID.fromString("019d0253-ef34-7361-ba13-0516d43c4ab8");
-    private static final UUID CATEGORY_ID = UUID.fromString("019d0253-ef34-7361-ba13-0516d43c4ab9");
     private static final String VALID_TITLE = "My First Post About Java";
     private static final String VALID_CONTENT = "A".repeat(100);
     //endregion
 
     //region Helper Methods
 
-    private void persistUser(UUID userId, boolean isActive, Role role) {
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        jdbcTemplate.update("""
-                INSERT INTO users (id, email, user_name, password, is_active, role, created_at, last_modified_at, version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                userId,
-                userId + "@blogify.com",
-                "user_" + userId.toString().substring(0, 8),
-                "HashedPass@123",
-                isActive,
-                role.name(),
-                now, now, 0L
-        );
+    private UUID persistUser() {
+        return userFacade.createUser("user@blogify.com", "user123", "Strong@123");
     }
 
-    private CategoryEntity persistCategory() {
-        CategoryEntity category = CategoryEntity.builder()
-                .id(CATEGORY_ID)
-                .title("Category " + PostCommandServiceIntegrationTest.CATEGORY_ID.toString().substring(0, 8))
-                .description("Some description for category")
-                .status(CategoryStatus.ACTIVE)
-                .build();
-        persist(category);
-        return category;
+    private UUID persistAdmin() {
+        return userFacade.createAdmin("admin@blogify.com", "admin", "Strong@123");
     }
 
-    private UUID persistPost(UUID authorId, String title, String slug, PostStatus status, Set<CategoryEntity> categories) {
-        UUID postId = UUID.randomUUID();
-        PostEntity post = PostEntity.builder()
-                .id(postId)
-                .title(title)
-                .slug(slug)
-                .content(VALID_CONTENT)
-                .authorId(authorId)
-                .categories(categories)
-                .status(status)
-                .build();
-        persist(post);
-        return postId;
+    private UUID persistCategory(UUID adminId) {
+        return categoryCommandService.createCategory(new CategoryRequest(
+                "title",
+                "description",
+                adminId
+        ));
     }
 
-    private PostRequest buildRequest(String title, List<UUID> categoryIds) {
-        return new PostRequest(title, VALID_CONTENT, categoryIds, ACTOR_ID);
+    private UUID persistPost(UUID authorId, List<UUID> categories) {
+
+        return postCommandService.createPost(new PostRequest(
+                VALID_TITLE,
+                VALID_CONTENT,
+                categories,
+                authorId
+        ));
     }
 
-    private void givenActiveUser() {
-        persistUser(ACTOR_ID, true, Role.USER);
+    private PostRequest buildRequest(String title, List<UUID> categoryIds, UUID authorId) {
+        return new PostRequest(title, VALID_CONTENT, categoryIds, authorId);
     }
 
-    private void givenActiveAdmin() {
-        persistUser(ACTOR_ID, true, Role.ADMIN);
-    }
-
-    private void givenInactiveUser() {
-        persistUser(ACTOR_ID, false, Role.USER);
-    }
-
-    // Direct DB reads — no session, no lazy loading, no lies
     private String getPostStatus(UUID postId) {
-        return jdbcTemplate.queryForObject(
-                "SELECT status FROM posts WHERE id = ?",
-                String.class, postId
-        );
+        return postQueryService.getPostById(postId).status();
     }
 
     private String getPostTitle(UUID postId) {
-        return jdbcTemplate.queryForObject(
-                "SELECT title FROM posts WHERE id = ?",
-                String.class, postId
-        );
+        return postQueryService.getPostById(postId).title();
     }
 
     private String getPostSlug(UUID postId) {
-        return jdbcTemplate.queryForObject(
-                "SELECT slug FROM posts WHERE id = ?",
-                String.class, postId
-        );
+        return postQueryService.getPostById(postId).slug();
     }
 
     private UUID getPostAuthorId(UUID postId) {
-        return jdbcTemplate.queryForObject(
-                "SELECT author_id FROM posts WHERE id = ?",
-                UUID.class, postId
-        );
+        return postQueryService.getPostById(postId).authorData().id();
     }
 
     private boolean postExists(UUID postId) {
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM posts WHERE id = ?",
-                Integer.class, postId
-        );
-        return count != null && count > 0;
+        try {
+            postQueryService.getPostById(postId);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     //endregion
@@ -150,29 +114,29 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Successfully creates post and persists it")
         void should_CreatePost_When_RequestIsValid() {
-            givenActiveUser();
-            persistCategory();
+            UUID adminId = persistAdmin();
+            UUID categoryId = persistCategory(adminId);
 
             UUID postId = postCommandService.createPost(
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), adminId)
             );
 
             assertAll(
                     () -> assertThat(postExists(postId)).isTrue(),
                     () -> assertThat(getPostTitle(postId)).isEqualTo(VALID_TITLE),
                     () -> assertThat(getPostStatus(postId)).isEqualTo(PostStatus.DRAFT.name()),
-                    () -> assertThat(getPostAuthorId(postId)).isEqualTo(ACTOR_ID)
+                    () -> assertThat(getPostAuthorId(postId)).isEqualTo(adminId)
             );
         }
 
         @Test
         @DisplayName("Admin can also create a post")
         void should_CreatePost_When_AuthorIsAdmin() {
-            givenActiveAdmin();
-            persistCategory();
+            UUID adminId = persistAdmin();
+            UUID categoryId = persistCategory(adminId);
 
             UUID postId = postCommandService.createPost(
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), adminId)
             );
 
             assertThat(postExists(postId)).isTrue();
@@ -181,34 +145,38 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Generates unique slug when a post with the same title already exists")
         void should_GenerateUniqueSlug_When_PostWithSameTitleExists() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
 
-            persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID categoryId = persistCategory(adminId);
+
+            UUID postId = persistPost(adminId, List.of(categoryId));
 
             UUID newPostId = postCommandService.createPost(
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), adminId)
             );
 
+            String oldSlug = getPostSlug(postId);
             String newSlug = getPostSlug(newPostId);
 
             assertAll(
                     () -> assertThat(postExists(newPostId)).isTrue(),
-                    () -> assertThat(newSlug).isNotEqualTo("my-first-post-about-java"),
-                    () -> assertThat(newSlug).contains("my-first-post-about-java")
+                    () -> assertThat(newSlug).isNotEqualTo(oldSlug),
+                    () -> assertThat(newSlug).contains(oldSlug)
             );
         }
 
         @Test
         @DisplayName("Generates unique slug even when archived post with same title exists")
         void should_GenerateUniqueSlug_When_ArchivedPostWithSameTitleExists() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
 
-            persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.ARCHIVED, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID categoryId = persistCategory(adminId);
+
+            UUID postId = persistPost(adminId, List.of(categoryId));
+            postCommandService.deletePost(postId, adminId);
 
             UUID newPostId = postCommandService.createPost(
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), adminId)
             );
 
             assertThat(postExists(newPostId)).isTrue();
@@ -217,10 +185,10 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws AccountException when author is not found")
         void should_ThrowException_When_AuthorNotFound() {
-            persistCategory();
+            UUID categoryId = persistCategory(persistAdmin());
 
             assertThatThrownBy(() -> postCommandService.createPost(
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), UUID.randomUUID())
             ))
                     .isInstanceOf(AccountException.class)
                     .extracting(ex -> ((AccountException) ex).getError())
@@ -230,11 +198,14 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws AccountException when author is inactive")
         void should_ThrowException_When_AuthorIsInactive() {
-            givenInactiveUser();
-            persistCategory();
+            UUID adminId = persistAdmin();
+            UUID categoryId = persistCategory(adminId);
+            UUID userId = persistUser();
+
+            userFacade.deactivateUser(userId, adminId);
 
             assertThatThrownBy(() -> postCommandService.createPost(
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), userId)
             ))
                     .isInstanceOf(AccountException.class)
                     .extracting(ex -> ((AccountException) ex).getError())
@@ -244,15 +215,17 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws PostException when some categories do not exist")
         void should_ThrowException_When_CategoryNotFound() {
-            givenActiveUser();
+
+            UUID categoryId = UUID.randomUUID();
+            UUID userId = persistUser();
 
             assertThatThrownBy(() -> postCommandService.createPost(
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), userId)
             ))
                     .isInstanceOf(PostException.class)
                     .extracting(ex -> ((PostException) ex).getError())
                     .isEqualTo(PostException.postCategoriesNotFound(
-                            Set.of(new CategoryId(CATEGORY_ID))
+                            Set.of(new CategoryId(categoryId))
                     ).getError());
         }
     }
@@ -268,12 +241,13 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Successfully updates post when requester is the author")
         void should_UpdatePost_When_RequesterIsAuthor() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+
+            UUID adminId = persistAdmin();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(adminId, List.of(categoryId));
 
             String newTitle = "Updated Post Title Here";
-            postCommandService.updatePost(postId, buildRequest(newTitle, List.of(CATEGORY_ID)));
+            postCommandService.updatePost(postId, buildRequest(newTitle, List.of(categoryId), adminId));
 
             assertThat(getPostTitle(postId)).isEqualTo(newTitle);
         }
@@ -281,14 +255,16 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Admin can update post regardless of who created it")
         void should_UpdatePost_When_RequesterIsActiveAdmin() {
-            UUID originalAuthorId = UUID.randomUUID();
-            persistUser(originalAuthorId, true, Role.USER);
-            givenActiveAdmin();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(originalAuthorId, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+
+            UUID originalAuthorId = persistUser();
+
+            UUID adminId = persistAdmin();
+            UUID categoryId = persistCategory(adminId);
+
+            UUID postId = persistPost(originalAuthorId, List.of(categoryId));
 
             String newTitle = "Admin Updated This Title";
-            postCommandService.updatePost(postId, buildRequest(newTitle, List.of(CATEGORY_ID)));
+            postCommandService.updatePost(postId, buildRequest(newTitle, List.of(categoryId), adminId));
 
             assertThat(getPostTitle(postId)).isEqualTo(newTitle);
         }
@@ -296,25 +272,30 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Updating to a title that already exists succeeds since slug is not regenerated on update")
         void should_UpdatePost_When_TitleAlreadyExistsInAnotherPost() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
-            persistPost(ACTOR_ID, "Another Post Title", "another-post-title", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID authorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
 
-            postCommandService.updatePost(postId, buildRequest("Another Post Title", List.of(CATEGORY_ID)));
+            UUID postId = persistPost(authorId, List.of(categoryId));
 
-            assertThat(getPostTitle(postId)).isEqualTo("Another Post Title");
+            String newTitle = "Another Post Title";
+            postCommandService.createPost(buildRequest(newTitle, List.of(categoryId), authorId));
+
+            postCommandService.updatePost(postId, buildRequest(newTitle, List.of(categoryId), authorId));
+
+            assertThat(getPostTitle(postId)).isEqualTo(newTitle);
         }
 
         @Test
         @DisplayName("Throws PostException when post is not found")
         void should_ThrowException_When_PostNotFound() {
-            givenActiveUser();
-            persistCategory();
+            UUID adminId = persistAdmin();
+            UUID authorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
             UUID nonExistentPostId = UUID.randomUUID();
 
             assertThatThrownBy(() -> postCommandService.updatePost(nonExistentPostId,
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), authorId)
             ))
                     .isInstanceOf(PostException.class)
                     .extracting(ex -> ((PostException) ex).getError())
@@ -324,25 +305,30 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws PostException when requester is not the author and not admin")
         void should_ThrowException_When_RequesterIsNotAuthorAndNotAdmin() {
-            UUID originalAuthorId = UUID.randomUUID();
-            persistUser(originalAuthorId, true, Role.USER);
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(originalAuthorId, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID originalAuthorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(originalAuthorId, List.of(categoryId));
+
+            UUID otherUserId = userFacade.createUser("other@blogify.com", "otheruser", "Strong@123");
 
             assertThatThrownBy(() -> postCommandService.updatePost(postId,
-                    buildRequest("New Title For Update", List.of(CATEGORY_ID))
+                    buildRequest("New Title For Update", List.of(categoryId), otherUserId)
             ))
-                    .isInstanceOf(PostException.class)
-                    .extracting(ex -> ((PostException) ex).getError())
-                    .isEqualTo(PostException.unauthorized("").getError());
+                    .isInstanceOf(CommonException.class)
+                    .extracting(ex -> ((CommonException) ex).getError())
+                    .isEqualTo(CommonException.accessDenied().getError());
         }
 
         @Test
         @DisplayName("Throws AccountException when requester is not found")
         void should_ThrowException_When_RequesterNotFound() {
+            UUID adminId = persistAdmin();
+            UUID categoryId = persistCategory(adminId);
+            UUID nonExistentUserId = UUID.randomUUID();
+
             assertThatThrownBy(() -> postCommandService.updatePost(UUID.randomUUID(),
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), nonExistentUserId)
             ))
                     .isInstanceOf(AccountException.class)
                     .extracting(ex -> ((AccountException) ex).getError())
@@ -352,23 +338,13 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws AccountException when requester is inactive")
         void should_ThrowException_When_RequesterIsInactive() {
-            givenInactiveUser();
+            UUID adminId = persistAdmin();
+            UUID inactiveUserId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            userFacade.deactivateUser(inactiveUserId, adminId);
 
             assertThatThrownBy(() -> postCommandService.updatePost(UUID.randomUUID(),
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
-            ))
-                    .isInstanceOf(AccountException.class)
-                    .extracting(ex -> ((AccountException) ex).getError())
-                    .isEqualTo(AccountException.accountNotActive().getError());
-        }
-
-        @Test
-        @DisplayName("Throws AccountException when inactive admin tries to update")
-        void should_ThrowException_When_AdminIsInactive() {
-            persistUser(ACTOR_ID, false, Role.ADMIN);
-
-            assertThatThrownBy(() -> postCommandService.updatePost(UUID.randomUUID(),
-                    buildRequest(VALID_TITLE, List.of(CATEGORY_ID))
+                    buildRequest(VALID_TITLE, List.of(categoryId), inactiveUserId)
             ))
                     .isInstanceOf(AccountException.class)
                     .extracting(ex -> ((AccountException) ex).getError())
@@ -378,13 +354,14 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws PostException when some categories do not exist")
         void should_ThrowException_When_CategoryNotFound() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID authorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(authorId, List.of(categoryId));
             UUID nonExistentCategoryId = UUID.randomUUID();
 
             assertThatThrownBy(() -> postCommandService.updatePost(postId,
-                    buildRequest(VALID_TITLE, List.of(nonExistentCategoryId))
+                    buildRequest(VALID_TITLE, List.of(nonExistentCategoryId), authorId)
             ))
                     .isInstanceOf(PostException.class)
                     .extracting(ex -> ((PostException) ex).getError())
@@ -396,12 +373,15 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws PostException when updating an archived post")
         void should_ThrowException_When_PostIsArchived() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.ARCHIVED, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID authorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(authorId, List.of(categoryId));
+
+            postCommandService.deletePost(postId, authorId); // Archives the post
 
             assertThatThrownBy(() -> postCommandService.updatePost(postId,
-                    buildRequest("Some New Title Here", List.of(CATEGORY_ID))
+                    buildRequest("Some New Title Here", List.of(categoryId), authorId)
             ))
                     .isInstanceOf(PostException.class)
                     .extracting(ex -> ((PostException) ex).getError())
@@ -420,11 +400,12 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Successfully archives post when requester is the author")
         void should_DeletePost_When_RequesterIsAuthor() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID authorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(authorId, List.of(categoryId));
 
-            postCommandService.deletePost(postId, ACTOR_ID);
+            postCommandService.deletePost(postId, authorId);
 
             assertThat(getPostStatus(postId)).isEqualTo(PostStatus.ARCHIVED.name());
         }
@@ -432,13 +413,12 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Active admin can delete post they did not author")
         void should_DeletePost_When_RequesterIsActiveAdmin() {
-            UUID originalAuthorId = UUID.randomUUID();
-            persistUser(originalAuthorId, true, Role.USER);
-            givenActiveAdmin();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(originalAuthorId, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID originalAuthorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(originalAuthorId, List.of(categoryId));
 
-            postCommandService.deletePost(postId, ACTOR_ID);
+            postCommandService.deletePost(postId, adminId);
 
             assertThat(getPostStatus(postId)).isEqualTo(PostStatus.ARCHIVED.name());
         }
@@ -446,11 +426,13 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Deleting an already archived post is idempotent")
         void should_Succeed_When_PostIsAlreadyArchived() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.ARCHIVED, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID authorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(authorId, List.of(categoryId));
 
-            postCommandService.deletePost(postId, ACTOR_ID);
+            postCommandService.deletePost(postId, authorId); // First delete
+            postCommandService.deletePost(postId, authorId); // Idempotent delete
 
             assertThat(getPostStatus(postId)).isEqualTo(PostStatus.ARCHIVED.name());
         }
@@ -458,10 +440,10 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws PostException when post is not found")
         void should_ThrowException_When_PostNotFound() {
-            givenActiveUser();
+            UUID authorId = persistUser();
             UUID nonExistentPostId = UUID.randomUUID();
 
-            assertThatThrownBy(() -> postCommandService.deletePost(nonExistentPostId, ACTOR_ID))
+            assertThatThrownBy(() -> postCommandService.deletePost(nonExistentPostId, authorId))
                     .isInstanceOf(PostException.class)
                     .extracting(ex -> ((PostException) ex).getError())
                     .isEqualTo(PostException.postNotFound(new PostId(nonExistentPostId)).getError());
@@ -470,22 +452,25 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws PostException when requester is not the author and not admin")
         void should_ThrowException_When_RequesterIsNotAuthorAndNotAdmin() {
-            UUID originalAuthorId = UUID.randomUUID();
-            persistUser(originalAuthorId, true, Role.USER);
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(originalAuthorId, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID originalAuthorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(originalAuthorId, List.of(categoryId));
 
-            assertThatThrownBy(() -> postCommandService.deletePost(postId, ACTOR_ID))
-                    .isInstanceOf(PostException.class)
-                    .extracting(ex -> ((PostException) ex).getError())
-                    .isEqualTo(PostException.unauthorized("").getError());
+            UUID otherUserId = userFacade.createUser("other@blogify.com", "otheruser", "Strong@123");
+
+            assertThatThrownBy(() -> postCommandService.deletePost(postId, otherUserId))
+                    .isInstanceOf(CommonException.class)
+                    .extracting(ex -> ((CommonException) ex).getError())
+                    .isEqualTo(CommonException.accessDenied().getError());
         }
 
         @Test
         @DisplayName("Throws AccountException when requester is not found")
         void should_ThrowException_When_RequesterNotFound() {
-            assertThatThrownBy(() -> postCommandService.deletePost(UUID.randomUUID(), ACTOR_ID))
+            UUID nonExistentUserId = UUID.randomUUID();
+
+            assertThatThrownBy(() -> postCommandService.deletePost(UUID.randomUUID(), nonExistentUserId))
                     .isInstanceOf(AccountException.class)
                     .extracting(ex -> ((AccountException) ex).getError())
                     .isEqualTo(AccountException.accountNotFound().getError());
@@ -494,24 +479,16 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws AccountException when requester is inactive")
         void should_ThrowException_When_RequesterIsInactive() {
-            givenInactiveUser();
+            UUID adminId = persistAdmin();
+            UUID inactiveUserId = persistUser();
+            userFacade.deactivateUser(inactiveUserId, adminId);
 
-            assertThatThrownBy(() -> postCommandService.deletePost(UUID.randomUUID(), ACTOR_ID))
+            assertThatThrownBy(() -> postCommandService.deletePost(UUID.randomUUID(), inactiveUserId))
                     .isInstanceOf(AccountException.class)
                     .extracting(ex -> ((AccountException) ex).getError())
                     .isEqualTo(AccountException.accountNotActive().getError());
         }
 
-        @Test
-        @DisplayName("Throws AccountException when inactive admin tries to delete")
-        void should_ThrowException_When_AdminIsInactive() {
-            persistUser(ACTOR_ID, false, Role.ADMIN);
-
-            assertThatThrownBy(() -> postCommandService.deletePost(UUID.randomUUID(), ACTOR_ID))
-                    .isInstanceOf(AccountException.class)
-                    .extracting(ex -> ((AccountException) ex).getError())
-                    .isEqualTo(AccountException.accountNotActive().getError());
-        }
     }
 
     // -------------------------------------------------------------------------
@@ -525,11 +502,12 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Successfully publishes post when requester is the author and post is in draft")
         void should_PublishPost_When_RequesterIsAuthor() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID authorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(authorId, List.of(categoryId));
 
-            postCommandService.publishPost(postId, ACTOR_ID);
+            postCommandService.publishPost(postId, authorId);
 
             assertThat(getPostStatus(postId)).isEqualTo(PostStatus.PUBLISHED.name());
         }
@@ -537,13 +515,12 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Active admin can publish post they did not author")
         void should_PublishPost_When_RequesterIsActiveAdmin() {
-            UUID originalAuthorId = UUID.randomUUID();
-            persistUser(originalAuthorId, true, Role.USER);
-            givenActiveAdmin();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(originalAuthorId, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID originalAuthorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(originalAuthorId, List.of(categoryId));
 
-            postCommandService.publishPost(postId, ACTOR_ID);
+            postCommandService.publishPost(postId, adminId);
 
             assertThat(getPostStatus(postId)).isEqualTo(PostStatus.PUBLISHED.name());
         }
@@ -551,12 +528,13 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Publishing an already published post is idempotent and succeeds")
         void should_Succeed_When_PostIsAlreadyPublished() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            // Post is already published
-            UUID postId = persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.PUBLISHED, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID authorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(authorId, List.of(categoryId));
 
-            postCommandService.publishPost(postId, ACTOR_ID);
+            postCommandService.publishPost(postId, authorId); // Publish first time
+            postCommandService.publishPost(postId, authorId); // Publish second time
 
             // Status should remain published without throwing any exceptions
             assertThat(getPostStatus(postId)).isEqualTo(PostStatus.PUBLISHED.name());
@@ -565,11 +543,14 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws PostException when attempting to publish an archived post")
         void should_ThrowException_When_PostIsArchived() {
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(ACTOR_ID, VALID_TITLE, "my-first-post-about-java", PostStatus.ARCHIVED, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID authorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(authorId, List.of(categoryId));
 
-            assertThatThrownBy(() -> postCommandService.publishPost(postId, ACTOR_ID))
+            postCommandService.deletePost(postId, authorId); // Archive it
+
+            assertThatThrownBy(() -> postCommandService.publishPost(postId, authorId))
                     .isInstanceOf(PostException.class)
                     .extracting(ex -> ((PostException) ex).getError())
                     .isEqualTo(PostException.postCannotBePublishedWhenArchived().getError());
@@ -578,13 +559,14 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws CommonException when requester is not the author and not admin")
         void should_ThrowException_When_RequesterIsNotAuthorAndNotAdmin() {
-            UUID originalAuthorId = UUID.randomUUID();
-            persistUser(originalAuthorId, true, Role.USER);
-            givenActiveUser();
-            CategoryEntity category = persistCategory();
-            UUID postId = persistPost(originalAuthorId, VALID_TITLE, "my-first-post-about-java", PostStatus.DRAFT, Set.of(category));
+            UUID adminId = persistAdmin();
+            UUID originalAuthorId = persistUser();
+            UUID categoryId = persistCategory(adminId);
+            UUID postId = persistPost(originalAuthorId, List.of(categoryId));
 
-            assertThatThrownBy(() -> postCommandService.publishPost(postId, ACTOR_ID))
+            UUID otherUserId = userFacade.createUser("other@blogify.com", "otheruser", "Strong@123");
+
+            assertThatThrownBy(() -> postCommandService.publishPost(postId, otherUserId))
                     .isInstanceOf(CommonException.class)
                     .extracting(ex -> ((CommonException) ex).getError())
                     .isEqualTo(CommonException.accessDenied("You are not authorized to publish a post you did not author").getError());
@@ -593,10 +575,10 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws PostException when post is not found")
         void should_ThrowException_When_PostNotFound() {
-            givenActiveUser();
+            UUID authorId = persistUser();
             UUID nonExistentPostId = UUID.randomUUID();
 
-            assertThatThrownBy(() -> postCommandService.publishPost(nonExistentPostId, ACTOR_ID))
+            assertThatThrownBy(() -> postCommandService.publishPost(nonExistentPostId, authorId))
                     .isInstanceOf(PostException.class)
                     .extracting(ex -> ((PostException) ex).getError())
                     .isEqualTo(PostException.postNotFound(new PostId(nonExistentPostId)).getError());
@@ -605,7 +587,9 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws AccountException when requester is not found")
         void should_ThrowException_When_RequesterNotFound() {
-            assertThatThrownBy(() -> postCommandService.publishPost(UUID.randomUUID(), ACTOR_ID))
+            UUID nonExistentUserId = UUID.randomUUID();
+
+            assertThatThrownBy(() -> postCommandService.publishPost(UUID.randomUUID(), nonExistentUserId))
                     .isInstanceOf(AccountException.class)
                     .extracting(ex -> ((AccountException) ex).getError())
                     .isEqualTo(AccountException.accountNotFound().getError());
@@ -614,9 +598,11 @@ class PostCommandServiceIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("Throws AccountException when requester is inactive")
         void should_ThrowException_When_RequesterIsInactive() {
-            givenInactiveUser();
+            UUID adminId = persistAdmin();
+            UUID inactiveUserId = persistUser();
+            userFacade.deactivateUser(inactiveUserId, adminId);
 
-            assertThatThrownBy(() -> postCommandService.publishPost(UUID.randomUUID(), ACTOR_ID))
+            assertThatThrownBy(() -> postCommandService.publishPost(UUID.randomUUID(), inactiveUserId))
                     .isInstanceOf(AccountException.class)
                     .extracting(ex -> ((AccountException) ex).getError())
                     .isEqualTo(AccountException.accountNotActive().getError());

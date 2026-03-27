@@ -86,11 +86,11 @@ class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Response<Void>> deactivateUser(@PathVariable UUID id) {
 
-        UUID actorId = authenticationContext.getCurrentUserId()
+        UUID adminId = authenticationContext.getCurrentUserId()
                 .map(AuthView::id)
                 .orElseThrow(CommonException::unauthorizedAccess);
 
-        userCommandService.deActiveUser(actorId, id);
+        userCommandService.deActiveUser(id, adminId);
 
         return ResponseEntity.ok(Response.success(null));
     }

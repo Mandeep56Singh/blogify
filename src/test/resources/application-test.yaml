@@ -13,4 +13,8 @@ spring:
       com.mandeep.blogify: INFO
       org.springframework: WARN
       org.hibernate.SQL: ERROR
+      org:
+        springframework:
+          modulith=DEBUG:
+
 

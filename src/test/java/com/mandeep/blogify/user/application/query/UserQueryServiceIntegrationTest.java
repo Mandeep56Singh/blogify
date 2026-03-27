@@ -5,18 +5,17 @@ import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.exception.DomainError;
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
+import com.mandeep.blogify.user.application.command.UserCommandService;
+import com.mandeep.blogify.user.application.dto.RegistrationRequest;
 import com.mandeep.blogify.user.application.dto.UserResponse;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserName;
-import com.mandeep.blogify.user.infrastructure.persistence.entity.UserEntity;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.UUID;
 
@@ -28,11 +27,10 @@ public class UserQueryServiceIntegrationTest extends BaseIntegrationTest {
     //region Mock Data
 
     // persistent values in db
-    private static final UUID ID = UUID.fromString("019ce66a-7a58-7ebd-b78c-ac88bd154378");
+    private UUID ID;
     private static final String EMAIL = "user@231gmail.com";
     private static final String USER_NAME = "user";
     private static final String HASHED_PASSWORD = "hashed_password";
-    private static final Role ROLE = Role.USER;
 
     // non existent values in db
     private static final UUID ID1 = UUID.fromString("019ce66a-7a58-7ebd-b78c-ac88bd154334");
@@ -40,33 +38,21 @@ public class UserQueryServiceIntegrationTest extends BaseIntegrationTest {
     private static final String USER_NAME1 = "user1";
     //endregion
 
-
     @Autowired
     private UserQueryService userQueryService;
 
     @Autowired
-    private EntityManager entityManager;
-
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-
-
-
+    private UserCommandService userCommandService;
 
     @BeforeEach
     void persistUser() {
-        UserEntity user = UserEntity.builder()
-                .id(ID)
-                .email(EMAIL)
-                .userName(USER_NAME)
-                .password(HASHED_PASSWORD)
-                .isActive(true)
-                .role(ROLE)
-                .build();
-
-        persist(user);
+        ID = userCommandService.register(new RegistrationRequest(
+                EMAIL,
+                USER_NAME,
+                HASHED_PASSWORD,
+                Role.USER
+        ));
     }
-
 
     @Nested
     @DisplayName("getUserById()")

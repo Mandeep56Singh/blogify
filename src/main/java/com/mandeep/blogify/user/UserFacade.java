@@ -1,7 +1,6 @@
 package com.mandeep.blogify.user;
 
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
-import com.mandeep.blogify.user.api.RegistrationRequest;
 
 import java.util.Map;
 import java.util.Optional;
@@ -19,8 +18,9 @@ public interface UserFacade {
 
     Map<UUID, UserView> getUsersById(Set<UUID> ids);
 
-    UUID createUser(RegistrationRequest request);
+    UUID createUser(String email, String userName, String password);
 
-    UUID createAdmin(RegistrationRequest request);
+    UUID createAdmin(String email, String userName, String password);
 
+    void deactivateUser(UUID userId, UUID adminId);
 }

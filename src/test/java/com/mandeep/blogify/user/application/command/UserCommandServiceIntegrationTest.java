@@ -5,7 +5,7 @@ import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.exception.DomainError;
 import com.mandeep.blogify.shared.domain.model.valueObject.Email;
 import com.mandeep.blogify.shared.domain.model.valueObject.Role;
-import com.mandeep.blogify.user.application.dto.RegistrationRequestWithRole;
+import com.mandeep.blogify.user.application.dto.RegistrationRequest;
 import com.mandeep.blogify.user.domain.exceptions.UserDomainException;
 import com.mandeep.blogify.user.domain.model.entity.User;
 import com.mandeep.blogify.user.domain.model.valueobjects.UserId;
@@ -29,10 +29,10 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
     private UserCommandService userCommandService;
     //endregion
 
-    private static RegistrationRequestWithRole createRandomRequest() {
+    private static RegistrationRequest createRandomRequest() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
 
-        return new RegistrationRequestWithRole(
+        return new RegistrationRequest(
                 "user" + suffix + "@blogify.com",
                 "user" + suffix,
                 "StrongPassword@123!",
@@ -48,7 +48,7 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Successfully registers and persists a new user")
         void should_SaveUser_When_RequestIsValid() {
 
-            RegistrationRequestWithRole request = createRandomRequest();
+            RegistrationRequest request = createRandomRequest();
             userCommandService.register(request);
 
             boolean exists = userRepository.existsByEmail(new Email(request.email()));
@@ -61,7 +61,7 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
         void should_ThrowException_And_NeverSave_When_EmailIsTaken() {
 
             // Register new user
-            RegistrationRequestWithRole firstRequest = createRandomRequest();
+            RegistrationRequest firstRequest = createRandomRequest();
             userCommandService.register(firstRequest);
 
             // Request for user Registration with duplicate email
@@ -69,7 +69,7 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
             String suffix = UUID.randomUUID().toString().substring(0, 8);
             String newUserName = "user" + suffix;
 
-            RegistrationRequestWithRole requestWithDuplicateEmail = new RegistrationRequestWithRole(
+            RegistrationRequest requestWithDuplicateEmail = new RegistrationRequest(
                     firstRequest.email(),
                     newUserName,
                     firstRequest.password(),
@@ -90,7 +90,7 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Rejects registration when username is already taken")
         void should_ThrowException_And_NeverSave_When_UserNameIsTaken() {
             // Register new user
-            RegistrationRequestWithRole firstRequest = createRandomRequest();
+            RegistrationRequest firstRequest = createRandomRequest();
             userCommandService.register(firstRequest);
 
             // Request for user Registration with duplicate email
@@ -99,7 +99,7 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
             String newEmail = "user" + suffix + "@blogify.com";
 
 
-            RegistrationRequestWithRole requestWithDuplicateUsername = new RegistrationRequestWithRole(
+            RegistrationRequest requestWithDuplicateUsername = new RegistrationRequest(
                     newEmail,
                     firstRequest.userName(),
                     firstRequest.password(),
@@ -127,12 +127,12 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
         void should_DeactivateUser_When_ActorIsAdmin() {
             // Arrange: Setup data using the service itself
             UUID adminId = userCommandService.register(
-                    new RegistrationRequestWithRole("admin@test.com", "adminuser", "Pass@1234!", Role.ADMIN));
+                    new RegistrationRequest("admin@test.com", "adminuser", "Pass@1234!", Role.ADMIN));
             UUID targetId = userCommandService.register(
-                    new RegistrationRequestWithRole("user@test.com", "targetuser", "Pass@1234!", Role.USER));
+                    new RegistrationRequest("user@test.com", "targetuser", "Pass@1234!", Role.USER));
 
             // Act
-            userCommandService.deActiveUser(adminId, targetId);
+            userCommandService.deActiveUser(targetId, adminId);
 
             // Assert: Verify state via repository
             User updatedUser = userRepository.findById(new UserId(targetId)).orElseThrow();
@@ -144,13 +144,13 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
         void should_ThrowException_When_TargetNotFound() {
             // Arrange
             UUID adminId = userCommandService.register(
-                    new RegistrationRequestWithRole("admin2@test.com", "admin2", "Pass@1234!", Role.ADMIN));
+                    new RegistrationRequest("admin2@test.com", "admin2", "Pass@1234!", Role.ADMIN));
             UUID nonExistentId = UUID.randomUUID();
 
             // Act
             var ex = catchThrowableOfType(
                     UserDomainException.class,
-                    () -> userCommandService.deActiveUser(adminId, nonExistentId)
+                    () -> userCommandService.deActiveUser(nonExistentId, adminId)
             );
 
             // Assert
@@ -162,13 +162,13 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
         void should_ThrowException_When_ActorNotFound() {
             // Arrange
             UUID targetId = userCommandService.register(
-                    new RegistrationRequestWithRole("user2@test.com", "user2", "Pass@1234!", Role.USER));
+                    new RegistrationRequest("user2@test.com", "user2", "Pass@1234!", Role.USER));
             UUID nonExistentActorId = UUID.randomUUID();
 
             // Act
             var ex = catchThrowableOfType(
                     UserDomainException.class,
-                    () -> userCommandService.deActiveUser(nonExistentActorId, targetId)
+                    () -> userCommandService.deActiveUser(targetId, nonExistentActorId)
             );
 
             // Assert
@@ -180,14 +180,14 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
         void should_Fail_When_ActorIsRegularUser() {
             // Arrange
             UUID userActorId = userCommandService.register(
-                    new RegistrationRequestWithRole("actor@test.com", "actoruser", "Pass@1234!", Role.USER));
+                    new RegistrationRequest("actor@test.com", "actoruser", "Pass@1234!", Role.USER));
             UUID targetId = userCommandService.register(
-                    new RegistrationRequestWithRole("victim@test.com", "victimuser", "Pass@1234!", Role.USER));
+                    new RegistrationRequest("victim@test.com", "victimuser", "Pass@1234!", Role.USER));
 
             // Act
             var ex = catchThrowableOfType(
                     UserDomainException.class,
-                    () -> userCommandService.deActiveUser(userActorId, targetId)
+                    () -> userCommandService.deActiveUser(targetId, userActorId)
             );
 
             // Assert
@@ -203,7 +203,7 @@ public class UserCommandServiceIntegrationTest extends BaseIntegrationTest {
         void should_Fail_When_AdminTriesToDeactivateAdmin() {
             // Arrange
             UUID adminId = userCommandService.register(
-                    new RegistrationRequestWithRole("boss@test.com", "theboss", "Pass@1234!", Role.ADMIN));
+                    new RegistrationRequest("boss@test.com", "theboss", "Pass@1234!", Role.ADMIN));
 
             // Act
             var ex = catchThrowableOfType(

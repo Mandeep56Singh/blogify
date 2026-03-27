@@ -35,6 +35,12 @@ public class PostQueryAdapter implements PostQueryRepository {
         );
     }
 
+    public Optional<PostData> findPublishedPostById(UUID id) {
+        return jpaRepository.findPostByStatus(id, PostStatus.PUBLISHED).map(
+                postEntityMapper::toPostData
+        );
+    }
+
     @Override
     public PaginatedResponse<PostPageItemData> findAllPublished(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(

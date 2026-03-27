@@ -8,7 +8,6 @@ import com.mandeep.blogify.auth.web.dto.LoginWebResponse;
 import com.mandeep.blogify.auth.web.dto.SignUpWebRequest;
 import com.mandeep.blogify.integrationTest.base.BaseIntegrationTest;
 import com.mandeep.blogify.shared.AppConstants;
-import com.mandeep.blogify.shared.AppUtils;
 import com.mandeep.blogify.shared.domain.exception.CommonException;
 import com.mandeep.blogify.shared.domain.exception.DomainError;
 import com.mandeep.blogify.shared.domain.exception.enums.CommonError;
@@ -26,6 +25,8 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.stream.Stream;
 
+import static com.mandeep.blogify.shared.utils.TestUtils.assertErrorResponse;
+import static com.mandeep.blogify.shared.utils.TestUtils.assertSuccessResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @AutoConfigureMockMvc
-class AuthControllerTest extends BaseIntegrationTest {
+class AuthControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,37 +51,6 @@ class AuthControllerTest extends BaseIntegrationTest {
     private static final String password = "StrongPass2!";
     private static final String sign_up_url = "/api/v1/auth/signup";
     private static final String login_url = "/api/v1/auth/login";
-
-
-    public static <T> void assertErrorResponse(
-            Response<T> response,
-            String endpoint,
-            DomainError domainError
-    ) {
-        assertThat(response.success()).isFalse();
-        assertThat(response.data()).isNull();
-        assertThat(response.metaData()).isNull();
-        assertThat(response.timestamp()).isNotNull();
-        assertThat(response.instance()).endsWith(endpoint);
-        assertThat(response.error()).isNotNull();
-        assertThat(response.error().status()).isEqualTo(AppUtils.resolveStatus(domainError.errorType()));
-        assertThat(response.error().errorCode()).isEqualTo(domainError.errorCode());
-    }
-
-    public static <T> void assertSuccessResponse(
-            Response<T> response,
-            String expectedEndpoint
-    ) {
-
-        assertThat(response).isNotNull();
-        assertThat(response.success()).isTrue();
-        assertThat(response.instance()).isNotBlank();
-        assertThat(response.instance()).endsWith(expectedEndpoint);
-        assertThat(response.data()).isNotNull();
-        assertThat(response.metaData()).isNull();
-        assertThat(response.error()).isNull();
-        assertThat(response.timestamp()).isNotNull();
-    }
 
     public static void assertLoginResponse(
             LoginWebResponse loginResponse,
@@ -129,7 +99,8 @@ class AuthControllerTest extends BaseIntegrationTest {
             String rawJson = result.getResponse().getContentAsString();
 
             Response<LoginWebResponse> response = objectMapper.readValue(
-                    rawJson, new TypeReference<>() {}
+                    rawJson, new TypeReference<>() {
+                    }
             );
 
             assertSuccessResponse(response, login_url);
@@ -151,7 +122,8 @@ class AuthControllerTest extends BaseIntegrationTest {
             String rawJson = result.getResponse().getContentAsString();
 
             Response<LoginWebResponse> response = objectMapper.readValue(
-                    rawJson, new TypeReference<>() {}
+                    rawJson, new TypeReference<>() {
+                    }
             );
 
             assertErrorResponse(response, login_url, CommonError.VALIDATION_FAILED);
@@ -179,7 +151,8 @@ class AuthControllerTest extends BaseIntegrationTest {
             String rawJson = result.getResponse().getContentAsString();
 
             Response<LoginWebResponse> response = objectMapper.readValue(
-                    rawJson, new TypeReference<>() {}
+                    rawJson, new TypeReference<>() {
+                    }
             );
 
             DomainError error = CommonException.invalidCredentials().getError();
@@ -202,7 +175,8 @@ class AuthControllerTest extends BaseIntegrationTest {
             String rawJson = result.getResponse().getContentAsString();
 
             Response<LoginWebResponse> response = objectMapper.readValue(
-                    rawJson, new TypeReference<>() {}
+                    rawJson, new TypeReference<>() {
+                    }
             );
 
             DomainError error = CommonException.invalidCredentials().getError();
