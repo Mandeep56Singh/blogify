@@ -33,3 +33,12 @@ rsa:
   private-key: classpath:certs/private_key.pem
   public-key: classpath:certs/public_key.pem
   token-expire-in: 7d
+
+management:
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics # URL of your OTel Collector
+        step: 10s
+
+

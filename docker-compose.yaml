@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
-#      POSTGRES_DB: db
+      POSTGRES_DB: blogify_dev
 
   adminer:
     container_name: "blog_adminer"
@@ -19,5 +19,35 @@ services:
     depends_on:
       - db
 
+  otel-collector:
+    container_name: "open_telemetry_collector"
+    image: otel/opentelemetry-collector:0.148.0
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector/otel-collector-config.yaml"]
+    volumes:
+      - ./docker/otel-collector:/etc/otel-collector
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+#      - "55679:55679" # zPages
 
+  prometheus:
+    container_name: "prometheus"
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    command: ["--config.file=/etc/prometheus/prometheus.yaml"]
+    volumes:
+      - ./docker/prometheus:/etc/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
 
+  grafana:
+    container_name: "grafana"
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus

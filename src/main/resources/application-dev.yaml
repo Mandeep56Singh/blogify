@@ -23,7 +23,7 @@ logging:
     level: "%5p [${spring.application.name},%X{traceId:-},%X{spanId:-},%X{userId:-}]"
 
 seed:
-  user_count: 1000
-  post_count: 1000
-  category_count: 100
+  user_count: 10
+  post_count: 100
+  category_count: 10
 
